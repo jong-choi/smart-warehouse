@@ -1,6 +1,5 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
-import React from "react";
 import DashboardStats from "@/components/dashboard/home/stats/DashboardStats";
 
 vi.mock("@/stores/unloadingParcelsStore", () => ({

@@ -1,11 +1,10 @@
 import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
-import React from "react";
 import { DashboardDailySalesTable } from "@/components/dashboard/sales/daily/DashboardDailySalesTable";
 
 vi.mock("@/hooks/useSales", () => ({
-  useDailySalesSuspense: (year: number, month: number) => ({
+  useDailySalesSuspense: (_year: number, month: number) => ({
     data: {
       data: [
         {

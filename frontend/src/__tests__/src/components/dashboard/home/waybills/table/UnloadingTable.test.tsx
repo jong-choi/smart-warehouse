@@ -2,18 +2,17 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { UnloadingTable } from "@/components/dashboard/home/waybills/table/UnloadingTable";
-import React from "react";
 import type { UnloadingParcel } from "@/components/dashboard/home/waybills/types";
 
 // zustand store 기능 중 선택자 버전 훅을 실제 구현 그대로 사용하되, 초기 상태를 통제하기 위해 간단한 모킹 적용
 vi.mock("@/stores/unloadingTableStore", async (orig) => {
-  const mod = await orig();
+  const mod = (await orig()) as object;
   const state = {
     pageIndex: 0,
     pageSize: 10,
     lastPageIndex: 0,
     globalFilter: "",
-    statusFilter: "all" as const,
+    statusFilter: "all",
     sorting: [{ id: "waybillId", desc: false }],
   };
   // 원래 훅 시그니처: (keys: K[]) => Pick<T, K>
@@ -54,14 +53,14 @@ vi.mock("@/stores/unloadingTableStore", async (orig) => {
 const parcels: UnloadingParcel[] = [
   {
     id: 1,
-    waybillId: 1,
+    waybillId: "1",
     status: "PENDING_UNLOAD",
     createdAt: "2024-01-01T00:00:00.000Z",
     declaredValue: 1000,
   },
   {
     id: 2,
-    waybillId: 2,
+    waybillId: "2",
     status: "NORMAL",
     createdAt: "2024-01-01T00:00:00.000Z",
     declaredValue: 2000,
