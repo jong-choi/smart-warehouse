@@ -1,4 +1,4 @@
-import React, { useRef, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { Send } from "lucide-react";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
@@ -41,13 +41,54 @@ export const ChatbotInput: React.FC = () => {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ sessionId, message: value }),
-      }).catch(() => {});
-    }
-    if (inputRef.current) {
-      inputRef.current.value = "";
+      });
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
       setIsValue(false);
     }
   };
+
+  // 마지막 사용자 메시지 텍스트 추출
+  const { isCollecting, isMessagePending, systemContext } = useChatUiStore([
+    "isCollecting",
+    "isMessagePending",
+    "systemContext",
+  ]);
+
+  // 컨텍스트 수집 완료 후 실제 전송
+  useEffect(() => {
+    if (!isCollecting || isMessagePending) return;
+    const timeout = setTimeout(() => {
+      const sid = sessionId;
+      if (!sid) {
+        setIsCollecting(false);
+        return;
+      }
+      fetch(`${apiBase}/api/chat/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId: sid,
+          message: inputRef.current?.value || "",
+          systemContext,
+        }),
+      });
+      setIsCollecting(false);
+      if (inputRef.current) {
+        inputRef.current.value = "";
+      }
+      setIsValue(false);
+    }, 0);
+    return () => clearTimeout(timeout);
+  }, [
+    apiBase,
+    isCollecting,
+    isMessagePending,
+    setIsCollecting,
+    systemContext,
+    sessionId,
+  ]);
 
   return (
     <div className="p-4 border-t border-sidebar-border bg-sidebar-accent/50  rounded-b-lg min-h-[60px]">

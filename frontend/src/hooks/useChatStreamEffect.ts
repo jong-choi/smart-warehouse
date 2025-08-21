@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "react";
 import { useChatMessagesStore } from "@/stores/chatMessagesStore";
 import { useChatConnectionStore } from "@/stores/chatConnectionStore";
-import { useChatUiStore } from "@/stores/chatUiStore";
 
 type Options = { apiBase?: string };
 
@@ -27,14 +26,6 @@ export function useChatStreamEffect(options: Options = {}) {
     "setSessionId",
     "reconnectNonce",
   ]);
-
-  const { systemContext, isCollecting, isMessagePending, setIsCollecting } =
-    useChatUiStore([
-      "systemContext",
-      "isCollecting",
-      "isMessagePending",
-      "setIsCollecting",
-    ]);
 
   const sourceRef = useRef<EventSource | null>(null);
 
@@ -165,52 +156,5 @@ export function useChatStreamEffect(options: Options = {}) {
     setSessionId,
     addMessage,
     updateLastMessage,
-  ]);
-  // 마지막 사용자 메시지 텍스트 추출
-  const messageIds = useChatMessagesStore((s) => s.messageIds);
-  const messagesById = useChatMessagesStore((s) => s.messagesById);
-
-  // 컨텍스트 수집 완료 후 실제 전송
-  useEffect(() => {
-    if (!isCollecting || isMessagePending) return;
-    const timeout = setTimeout(() => {
-      const sid = sessionId;
-      if (!sid) {
-        setIsCollecting(false);
-        return;
-      }
-
-      let userText = "";
-      for (let i = messageIds.length - 1; i >= 0; i--) {
-        const mid = messageIds[i];
-        const m = messagesById[mid];
-        if (m && m.isUser) {
-          userText = m.text || "";
-          break;
-        }
-      }
-      if (userText) {
-        fetch(`${apiBase}/api/chat/send`, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            sessionId: sid,
-            message: userText,
-            systemContext,
-          }),
-        }).catch(() => {});
-      }
-      setIsCollecting(false);
-    }, 0);
-    return () => clearTimeout(timeout);
-  }, [
-    apiBase,
-    isCollecting,
-    isMessagePending,
-    setIsCollecting,
-    systemContext,
-    sessionId,
-    messageIds,
-    messagesById,
   ]);
 }
