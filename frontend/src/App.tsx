@@ -20,6 +20,7 @@ import DashboardWaybillDetailPage from "@pages/dashboard/waybills/DashboardWaybi
 import { DashboardMonthlySalesPage } from "@pages/dashboard/sales/DashboardMonthlySalesPage";
 import { DashboardDailySalesPage } from "@pages/dashboard/sales/DashboardDailySalesPage";
 import { DashboardSalesOverviewPage } from "@pages/dashboard/sales/DashboardSalesOverviewPage";
+import SSEChatbot from "@pages/sse-chatbot/SSEChatbot";
 
 function App() {
   return (
@@ -27,6 +28,7 @@ function App() {
       <Routes>
         {/* Root route with redirect */}
         <Route path="/" element={<Navigate to="/warehouse" replace />} />
+        <Route path="/sse-chatbot" element={<SSEChatbot />} />
 
         {/* Root layout with tab switcher */}
         <Route element={<RootLayout />}>

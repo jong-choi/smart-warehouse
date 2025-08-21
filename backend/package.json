@@ -24,6 +24,7 @@
     "@langchain/community": "^0.3.49",
     "@langchain/core": "^0.3.66",
     "@langchain/ollama": "^0.2.3",
+    "@langchain/openai": "^0.6.9",
     "@prisma/client": "^6.11.1",
     "@types/socket.io": "^3.0.1",
     "@types/swagger-jsdoc": "^6.0.4",
