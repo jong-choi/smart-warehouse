@@ -28,3 +28,4 @@ describe("useWorkersStore", () => {
     expect(s.stats.idleWorkers).toBe(20);
   });
 });
+
