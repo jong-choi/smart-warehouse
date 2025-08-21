@@ -2,10 +2,10 @@ import React from "react";
 import { Send } from "lucide-react";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
-import { useChatbot } from "@hooks/useChatbot";
+import { useSSEChatbot } from "@hooks/useSSEChatbot";
 
 export const ChatbotInput: React.FC = () => {
-  const { inputValue, isLoading, sendMessage, setInputValue } = useChatbot();
+  const { inputValue, isLoading, sendMessage, setInputValue } = useSSEChatbot();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();

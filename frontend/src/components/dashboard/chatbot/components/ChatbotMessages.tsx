@@ -3,7 +3,7 @@ import { Bot } from "lucide-react";
 import { MessageItem } from "@components/dashboard/chatbot/components/MessageItem";
 import { useChatbotStore } from "@stores/chatbotStore";
 import { cn } from "@/lib/utils";
-import { useChatbot } from "@hooks/useChatbot";
+import { useSSEChatbot } from "@hooks/useSSEChatbot";
 
 export const ChatbotMessages: React.FC = () => {
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -11,7 +11,7 @@ export const ChatbotMessages: React.FC = () => {
     "connectionFailed",
     "messages",
   ]);
-  const { retryConnection } = useChatbot();
+  const { retryConnection } = useSSEChatbot();
 
   // 메시지가 추가될 때마다 스크롤을 맨 아래로
   useEffect(() => {

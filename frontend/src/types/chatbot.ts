@@ -5,6 +5,9 @@ export interface Message {
   timestamp: Date;
   isStreaming?: boolean;
   isContext?: boolean;
+  // SSE 전용: 모델 reasoning 별도 표기용 (선택적)
+  reasoningText?: string;
+  isThinking?: boolean;
 }
 
 export interface ChatbotState {

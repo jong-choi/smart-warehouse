@@ -1,50 +1,65 @@
-import { useCallback, useEffect, useRef, useState } from "react";
-
-export type StreamMessage = {
-  id: string;
-  text: string;
-  isUser: boolean;
-  timestamp: Date;
-  isStreaming?: boolean;
-  // 모델의 reasoning 요약 스트림 표시용
-  reasoningText?: string;
-  isThinking?: boolean;
-};
+import { useCallback, useEffect, useRef } from "react";
+import { useChatbotStore } from "@/stores/chatbotStore";
 
 type UseSSEChatbotOptions = {
   apiBase?: string;
 };
 
-function useSSEChatbot(options: UseSSEChatbotOptions = {}) {
+export function useSSEChatbot(options: UseSSEChatbotOptions = {}) {
   const apiBase = options.apiBase || import.meta.env.VITE_API_BASE_URL || "";
 
-  const [messages, setMessages] = useState<StreamMessage[]>([]);
-  const [inputValue, setInputValue] = useState("");
-  const [isConnected, setIsConnected] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [connectionFailed, setConnectionFailed] = useState(false);
+  const {
+    messages,
+    inputValue,
+    isConnected,
+    isLoading,
+    connectionFailed,
+    systemContext,
+    useContext,
+    isCollecting,
+    isMessagePending,
+    addMessage,
+    updateLastMessage,
+    setInputValue,
+    setIsConnected,
+    setIsLoading,
+    setConnectionFailed,
+    setIsCollecting,
+    setIsMessagePending,
+    clearMessages,
+  } = useChatbotStore([
+    "messages",
+    "inputValue",
+    "isConnected",
+    "isLoading",
+    "connectionFailed",
+    "systemContext",
+    "useContext",
+    "isCollecting",
+    "isMessagePending",
+    "addMessage",
+    "updateLastMessage",
+    "setInputValue",
+    "setIsConnected",
+    "setIsLoading",
+    "setConnectionFailed",
+    "setIsCollecting",
+    "setIsMessagePending",
+    "clearMessages",
+  ]);
 
   const sourceRef = useRef<EventSource | null>(null);
   const sessionIdRef = useRef<string | null>(null);
   const streamingMsgIdRef = useRef<string | null>(null);
 
-  const addMessage = useCallback((msg: StreamMessage) => {
-    setMessages((prev) => [...prev, msg]);
-  }, []);
-
-  const updateLastMessage = useCallback(
-    (updater: (m: StreamMessage) => StreamMessage) => {
-      setMessages((prev) =>
-        prev.length === 0
-          ? prev
-          : [...prev.slice(0, -1), updater(prev[prev.length - 1])]
-      );
-    },
-    []
-  );
-
   const connect = useCallback(async () => {
     try {
+      // 기존 연결 정리 (기존 useChatbot 로직과 동일)
+      if (sourceRef.current) {
+        sourceRef.current.close();
+        sourceRef.current = null;
+      }
+
       setConnectionFailed(false);
       setIsConnected(false);
 
@@ -65,6 +80,7 @@ function useSSEChatbot(options: UseSSEChatbotOptions = {}) {
       sourceRef.current = src;
 
       src.addEventListener("open", () => {
+        clearMessages();
         setIsConnected(true);
         setConnectionFailed(false);
       });
@@ -150,26 +166,92 @@ function useSSEChatbot(options: UseSSEChatbotOptions = {}) {
       setConnectionFailed(true);
       setIsConnected(false);
     }
-  }, [addMessage, apiBase, updateLastMessage]);
+  }, [
+    addMessage,
+    apiBase,
+    updateLastMessage,
+    setIsConnected,
+    setConnectionFailed,
+    setIsLoading,
+    clearMessages,
+  ]);
 
   const sendMessage = useCallback(async () => {
-    if (!inputValue.trim() || !sessionIdRef.current || isLoading) return;
+    if (
+      !inputValue.trim() ||
+      !sessionIdRef.current ||
+      isLoading ||
+      isMessagePending
+    )
+      return;
+
     addMessage({
       id: `${Date.now()}`,
       text: inputValue,
       isUser: true,
       timestamp: new Date(),
     });
-    setInputValue("");
-    await fetch(`${apiBase}/api/chat/send`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        sessionId: sessionIdRef.current,
-        message: inputValue,
-      }),
-    });
-  }, [addMessage, apiBase, inputValue, isLoading]);
+
+    if (useContext) {
+      // 컨텍스트 수집 모드
+      setIsMessagePending(true);
+      setIsCollecting(true);
+    } else {
+      // 바로 전송
+      const messageToSend = inputValue;
+      setInputValue("");
+      await fetch(`${apiBase}/api/chat/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sessionId: sessionIdRef.current,
+          message: messageToSend,
+        }),
+      });
+    }
+  }, [
+    addMessage,
+    apiBase,
+    inputValue,
+    isLoading,
+    isMessagePending,
+    useContext,
+    setIsMessagePending,
+    setIsCollecting,
+    setInputValue,
+  ]);
+
+  // 컨텍스트 수집 완료 시 메시지 전송 (기존 useChatbot 로직과 동일)
+  useEffect(() => {
+    if (isCollecting && !isMessagePending) {
+      const timeout = setTimeout(() => {
+        const sendWithContext = async () => {
+          const messageToSend = inputValue;
+          await fetch(`${apiBase}/api/chat/send`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              sessionId: sessionIdRef.current,
+              message: messageToSend,
+              systemContext: systemContext,
+            }),
+          });
+        };
+        sendWithContext();
+        setIsCollecting(false);
+        setInputValue("");
+      }, 0);
+      return () => clearTimeout(timeout);
+    }
+  }, [
+    inputValue,
+    isCollecting,
+    isMessagePending,
+    setInputValue,
+    setIsCollecting,
+    systemContext,
+    apiBase,
+  ]);
 
   const clearConversation = useCallback(async () => {
     if (!sessionIdRef.current) return;
@@ -183,21 +265,22 @@ function useSSEChatbot(options: UseSSEChatbotOptions = {}) {
       if (!r.ok) {
         sessionIdRef.current = null;
       }
-      setMessages([]);
+      clearMessages();
     } catch {
       // 네트워크 오류 시에도 로컬 초기화 및 세션 리셋
       sessionIdRef.current = null;
-      setMessages([]);
+      clearMessages();
     }
-  }, [apiBase]);
+  }, [apiBase, clearMessages]);
 
   const retryConnection = useCallback(() => {
     sourceRef.current?.close();
     sourceRef.current = null;
     // 기존 세션이 서버에 없을 수 있으므로 세션을 재발급하도록 리셋
     sessionIdRef.current = null;
+    clearMessages();
     connect();
-  }, [connect]);
+  }, [connect, clearMessages]);
 
   useEffect(() => {
     connect();
@@ -216,5 +299,3 @@ function useSSEChatbot(options: UseSSEChatbotOptions = {}) {
     retryConnection,
   };
 }
-
-export default useSSEChatbot;

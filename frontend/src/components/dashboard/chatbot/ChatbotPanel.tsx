@@ -1,6 +1,5 @@
 import { useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useChatbot } from "@/hooks/useChatbot";
 import { useChatbotStore } from "@/stores/chatbotStore";
 import { getScreenName } from "@/utils/chatbot";
 import {
@@ -9,13 +8,14 @@ import {
   ChatbotStatusBar,
   ChatbotInput,
 } from "@components/dashboard/chatbot/components";
+import { useSSEChatbot } from "@hooks/useSSEChatbot";
 
 export function ChatbotPanel() {
   const location = useLocation();
   const currentScreen = getScreenName(location.pathname);
 
   const { isOpen, setIsOpen } = useChatbotStore(["isOpen", "setIsOpen"]);
-  const { isConnected, connectionFailed, retryConnection } = useChatbot();
+  const { isConnected, connectionFailed, retryConnection } = useSSEChatbot();
 
   return (
     <div className="flex flex-col h-full p-2 absolute pt-20 xl:p-2 xl:ml-0 xl:relative bottom-0 right-0 bg-white z-50">
