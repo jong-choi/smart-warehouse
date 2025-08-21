@@ -7,13 +7,11 @@ describe("useWorkersStore", () => {
     expect(workers.length).toBe(20);
     expect(stats.totalWorkers).toBe(20);
 
-    useWorkersStore
-      .getState()
-      .updateWorker("A1", {
-        status: "WORKING",
-        processedCount: 1,
-        workStartedAt: new Date().toISOString(),
-      });
+    useWorkersStore.getState().updateWorker("A1", {
+      status: "WORKING",
+      processedCount: 1,
+      workStartedAt: new Date().toISOString(),
+    });
 
     const st = useWorkersStore.getState();
     expect(st.workers.find((w) => w.id === "A1")?.status).toBe("WORKING");
@@ -28,4 +26,3 @@ describe("useWorkersStore", () => {
     expect(s.stats.idleWorkers).toBe(20);
   });
 });
-

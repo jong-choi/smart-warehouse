@@ -1,20 +1,38 @@
-import type { DailySalesResponse, MonthlySalesResponse } from '@/types/sales'
+import type { DailySalesResponse, MonthlySalesResponse } from "@/types/sales";
 
 export const monthlySales: MonthlySalesResponse = {
   success: true,
   data: [
-    { period: '2024.01', unloadCount: 10, totalShippingValue: 1000, avgShippingValue: 100, normalProcessCount: 9, processValue: 900, accidentCount: 1, accidentValue: 100 },
+    {
+      period: "2024.01",
+      unloadCount: 10,
+      totalShippingValue: 1000,
+      avgShippingValue: 100,
+      normalProcessCount: 9,
+      processValue: 900,
+      accidentCount: 1,
+      accidentValue: 100,
+    },
   ],
   meta: { year: 2024, totalMonths: 12 },
-}
+};
 
 export const dailySales: DailySalesResponse = {
   success: true,
   data: [
-    { period: '1일', unloadCount: 1, totalShippingValue: 100, avgShippingValue: 100, normalProcessCount: 1, processValue: 100, accidentCount: 0, accidentValue: 0 },
+    {
+      period: "1일",
+      unloadCount: 1,
+      totalShippingValue: 100,
+      avgShippingValue: 100,
+      normalProcessCount: 1,
+      processValue: 100,
+      accidentCount: 0,
+      accidentValue: 0,
+    },
   ],
   meta: { year: 2024, month: 1, totalDays: 31 },
-}
+};
 
 export const salesOverview = {
   success: true,
@@ -28,14 +46,17 @@ export const salesOverview = {
     currentMonthRevenue: 500,
     previousMonthRevenue: 475,
   },
-}
+};
 
 export const locationSales = {
   success: true,
   data: [
-    { locationId: 1, locationName: '서울', revenue: 600, processedCount: 6, accidentCount: 1 },
+    {
+      locationId: 1,
+      locationName: "서울",
+      revenue: 600,
+      processedCount: 6,
+      accidentCount: 1,
+    },
   ],
-}
-
-
-
+};

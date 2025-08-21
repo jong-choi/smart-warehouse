@@ -42,4 +42,3 @@ describe("<DashboardStats />", () => {
     expect(screen.getByText("매출")).toBeInTheDocument();
   });
 });
-
