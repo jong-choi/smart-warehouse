@@ -1,3 +1,4 @@
+// Deprecated: useChatStreamEffect/useChatConnection을 사용하세요.
 import { useCallback, useEffect, useRef } from "react";
 import { useChatbotStore } from "@/stores/chatbotStore";
 

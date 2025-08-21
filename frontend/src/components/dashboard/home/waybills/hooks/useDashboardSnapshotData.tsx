@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useUnloadingParcelsStore } from "@/stores/unloadingParcelsStore";
 import type { UnloadingParcel } from "@components/dashboard/home/waybills/types";
+import { useShallow } from "zustand/shallow";
 
 export function useDashboardSnapshotData() {
   const hasData = useUnloadingParcelsStore(
@@ -8,15 +9,14 @@ export function useDashboardSnapshotData() {
   );
 
   const [tableData, setTableData] = useState<UnloadingParcel[] | null>(null);
-
+  const currentParcels = useUnloadingParcelsStore(useShallow((s) => s.parcels));
   const createSnapshot = useCallback(() => {
-    const currentParcels = useUnloadingParcelsStore.getState().parcels;
     if (!currentParcels || currentParcels.length === 0) {
       setTableData(null);
       return;
     }
     setTableData([...currentParcels]); // 깊은 복사
-  }, []);
+  }, [currentParcels]);
 
   useEffect(() => {
     if (hasData && tableData === null) {

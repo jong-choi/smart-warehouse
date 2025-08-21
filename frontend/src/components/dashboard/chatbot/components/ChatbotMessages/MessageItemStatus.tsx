@@ -1,6 +1,7 @@
 import React, { useMemo } from "react";
 import { type Message } from "@/types/chatbot";
-import { useChatbotStore } from "@/stores/chatbotStore";
+import { useChatConnection } from "@/hooks/useChatConnection";
+import { useChatUiStore } from "@/stores/chatUiStore";
 
 interface MessageItemStatusProps {
   message: Message;
@@ -9,8 +10,8 @@ interface MessageItemStatusProps {
 export const MessageItemStatus: React.FC<MessageItemStatusProps> = ({
   message,
 }) => {
-  const { isLoading, systemContext, useContext } = useChatbotStore([
-    "isLoading",
+  const { isLoading } = useChatConnection();
+  const { systemContext, useContext } = useChatUiStore([
     "systemContext",
     "useContext",
   ]);

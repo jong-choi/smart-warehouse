@@ -1,13 +1,9 @@
 import { useEffect, useState, useCallback } from "react";
-import { useChatbotStore } from "@/stores/chatbotStore";
+import { useChatUiStore } from "@stores/chatUiStore";
 
 export function useDashboardHomeMessage() {
   const { setSystemContext, isCollecting, setIsMessagePending } =
-    useChatbotStore([
-      "setSystemContext",
-      "isCollecting",
-      "setIsMessagePending",
-    ]);
+    useChatUiStore(["setSystemContext", "isCollecting", "setIsMessagePending"]);
 
   const [dashaboardStatsMessage, setDashaboardStatsMessage] = useState("");
   const [waybillStatsMessage, setWaybillStatsMessage] = useState("");

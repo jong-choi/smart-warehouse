@@ -1,6 +1,6 @@
 import { useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { useChatbotStore } from "@/stores/chatbotStore";
+import { useChatUiStore } from "@/stores/chatUiStore";
 import { getScreenName } from "@/utils/chatbot";
 import {
   ChatbotHeader,
@@ -8,14 +8,16 @@ import {
   ChatbotStatusBar,
   ChatbotInput,
 } from "@components/dashboard/chatbot/components";
-import { useSSEChatbot } from "@hooks/useSSEChatbot";
+import { useChatConnection } from "@/hooks/useChatConnection";
+import { useChatStreamEffect } from "@/hooks/useChatStreamEffect";
 
 export function ChatbotPanel() {
   const location = useLocation();
   const currentScreen = getScreenName(location.pathname);
 
-  const { isOpen, setIsOpen } = useChatbotStore(["isOpen", "setIsOpen"]);
-  const { isConnected, connectionFailed, retryConnection } = useSSEChatbot();
+  const { isOpen, setIsOpen } = useChatUiStore(["isOpen", "setIsOpen"]);
+  const { retryConnection } = useChatConnection();
+  useChatStreamEffect();
 
   return (
     <div className="flex flex-col h-full p-2 absolute pt-20 xl:p-2 xl:ml-0 xl:relative bottom-0 right-0 bg-white z-50">
@@ -38,7 +40,6 @@ export function ChatbotPanel() {
         {/* 헤더 */}
         <ChatbotHeader
           isOpen={isOpen}
-          isConnected={isConnected}
           onToggle={() => setIsOpen(true)}
           onClose={() => setIsOpen(false)}
         />
@@ -51,10 +52,7 @@ export function ChatbotPanel() {
             {/* 현재 화면 정보 및 채팅 초기화 버튼 */}
             <ChatbotStatusBar
               currentScreen={currentScreen}
-              isConnected={isConnected}
-              connectionFailed={connectionFailed}
               onClearConversation={retryConnection}
-              onRetryConnection={retryConnection}
             />
 
             {/* 입력 영역 */}

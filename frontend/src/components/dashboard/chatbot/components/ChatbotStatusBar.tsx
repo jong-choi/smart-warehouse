@@ -1,30 +1,22 @@
 import React from "react";
-import { RotateCcw, RefreshCw } from "lucide-react";
+import { RotateCcw } from "lucide-react";
 import { Button } from "@components/ui/button";
 import { Checkbox } from "@components/ui/checkbox";
 import { cn } from "@/lib/utils";
-import { useChatbotStore } from "@stores/chatbotStore";
+import { useChatUiStore } from "@/stores/chatUiStore";
+import { useChatConnection } from "@/hooks/useChatConnection";
 
 interface ChatbotStatusBarProps {
   currentScreen: string;
-  isConnected: boolean;
-  connectionFailed: boolean;
   onClearConversation: () => void;
-  onRetryConnection: () => void;
 }
 
 export const ChatbotStatusBar: React.FC<ChatbotStatusBarProps> = React.memo(
-  ({
-    currentScreen,
-    isConnected,
-    connectionFailed,
-    onClearConversation,
-    onRetryConnection,
-  }) => {
-    const { useContext, setUseContext, isLoading } = useChatbotStore([
+  ({ currentScreen, onClearConversation }) => {
+    const { isConnected, connectionFailed, isLoading } = useChatConnection();
+    const { useContext, setUseContext } = useChatUiStore([
       "useContext",
       "setUseContext",
-      "isLoading",
     ]);
     const handleToggleContext = () => {
       setUseContext(!useContext);
@@ -93,16 +85,9 @@ export const ChatbotStatusBar: React.FC<ChatbotStatusBarProps> = React.memo(
           </div>
           <div className="flex items-center gap-1">
             {connectionFailed && (
-              <Button
-                onClick={onRetryConnection}
-                variant="ghost"
-                size="sm"
-                className="h-6 px-2 hover:bg-sidebar-accent text-sidebar-foreground/60 hover:text-sidebar-foreground text-xs"
-                title="연결 재시도"
-              >
-                <RefreshCw className="h-3 w-3 mr-1" />
-                재시도
-              </Button>
+              <div className="text-xs text-sidebar-foreground/60">
+                연결 실패
+              </div>
             )}
             {isConnected && (
               <Button

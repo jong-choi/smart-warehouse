@@ -1,7 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { type Message } from "@/types/chatbot";
-import { useChatbotStore } from "@/stores/chatbotStore";
+import { useChatConnection } from "@/hooks/useChatConnection";
+import { useChatUiStore } from "@/stores/chatUiStore";
 
 interface MessageItemReasoningProps {
   message: Message;
@@ -11,8 +12,8 @@ export const MessageItemReasoning: React.FC<MessageItemReasoningProps> = ({
   message,
 }) => {
   const [isReasoningExpanded, setIsReasoningExpanded] = useState(false);
-  const { isLoading, systemContext, useContext } = useChatbotStore([
-    "isLoading",
+  const { isLoading } = useChatConnection();
+  const { systemContext, useContext } = useChatUiStore([
     "systemContext",
     "useContext",
   ]);

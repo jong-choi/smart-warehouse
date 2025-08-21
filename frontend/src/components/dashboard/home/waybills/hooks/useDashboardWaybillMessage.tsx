@@ -1,14 +1,10 @@
 import { useEffect, useState } from "react";
-import { useChatbotStore } from "@/stores/chatbotStore";
+import { useChatUiStore } from "@stores/chatUiStore";
 
 export function useDashboardWaybillMessage() {
   const [tableContextMessage, setTableContextMessage] = useState<string>("");
   const { setSystemContext, isCollecting, setIsMessagePending } =
-    useChatbotStore([
-      "setSystemContext",
-      "isCollecting",
-      "setIsMessagePending",
-    ]);
+    useChatUiStore(["setSystemContext", "isCollecting", "setIsMessagePending"]);
 
   useEffect(() => {
     if (!isCollecting || !tableContextMessage) return;

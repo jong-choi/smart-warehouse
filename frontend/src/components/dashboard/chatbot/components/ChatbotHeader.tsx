@@ -1,20 +1,20 @@
 import React from "react";
 import { Bot, X, Wifi, WifiOff } from "lucide-react";
 import { Button } from "@components/ui/button";
+import { useChatConnection } from "@/hooks/useChatConnection";
 
 interface ChatbotHeaderProps {
   isOpen: boolean;
-  isConnected: boolean;
   onToggle: () => void;
   onClose: () => void;
 }
 
 export const ChatbotHeader: React.FC<ChatbotHeaderProps> = ({
   isOpen,
-  isConnected,
   onToggle,
   onClose,
 }) => {
+  const { isConnected } = useChatConnection();
   return (
     <div className="flex items-center justify-between p-4 border-b border-sidebar-border bg-sidebar-accent/20 rounded-t-lg min-h-[60px]">
       {isOpen ? (

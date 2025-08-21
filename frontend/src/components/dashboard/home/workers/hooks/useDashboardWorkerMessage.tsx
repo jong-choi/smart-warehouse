@@ -1,15 +1,11 @@
 import { useEffect, useState } from "react";
 import { useWorkersStore } from "@/stores/workersStore";
-import { useChatbotStore } from "@/stores/chatbotStore";
+import { useChatUiStore } from "@stores/chatUiStore";
 
 export function useDashboardWorkerMessage() {
   // 챗봇 관련 훅
   const { setSystemContext, isCollecting, setIsMessagePending } =
-    useChatbotStore([
-      "setSystemContext",
-      "isCollecting",
-      "setIsMessagePending",
-    ]);
+    useChatUiStore(["setSystemContext", "isCollecting", "setIsMessagePending"]);
 
   // 작업자 데이터 가져오기
   const { workers, stats } = useWorkersStore();

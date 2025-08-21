@@ -10,7 +10,7 @@ import {
 } from "@components/ui/select";
 import { useOperatorDetailSuspense } from "@/hooks/useOperator";
 import { DetailHeader, OperatorInfoCards } from "./components";
-import { useChatbotStore } from "@/stores/chatbotStore";
+import { useChatUiStore } from "@stores/chatUiStore";
 import { Stat } from "@components/ui";
 import { Input } from "@components/ui/input";
 import { Table, TableBody, TableCell, TableRow } from "@ui/table";
@@ -38,11 +38,7 @@ function WorkerDetailContent() {
     endDate || undefined
   );
   const { setSystemContext, isCollecting, setIsMessagePending } =
-    useChatbotStore([
-      "setSystemContext",
-      "isCollecting",
-      "setIsMessagePending",
-    ]);
+    useChatUiStore(["setSystemContext", "isCollecting", "setIsMessagePending"]);
   // 챗봇 컨텍스트 업데이트
   useEffect(() => {
     if (!operator || !isCollecting) return;

@@ -1,16 +1,51 @@
-import React from "react";
+import React, { useRef, useState } from "react";
 import { Send } from "lucide-react";
 import { Button } from "@components/ui/button";
 import { Input } from "@components/ui/input";
-import { useSSEChatbot } from "@hooks/useSSEChatbot";
+import { useChatConnection } from "@/hooks/useChatConnection";
+import { useChatMessagesStore } from "@/stores/chatMessagesStore";
+import { useChatConnectionStore } from "@/stores/chatConnectionStore";
+import { useChatUiStore } from "@/stores/chatUiStore";
 
 export const ChatbotInput: React.FC = () => {
-  const { inputValue, isLoading, sendMessage, setInputValue } = useSSEChatbot();
+  const { isLoading } = useChatConnection();
+  const addMessage = useChatMessagesStore((s) => s.addMessage);
+  const { sessionId } = useChatConnectionStore(["sessionId"]);
+  const apiBase = import.meta.env.VITE_API_BASE_URL || "";
+  const { useContext, setIsCollecting, setIsMessagePending } = useChatUiStore([
+    "useContext",
+    "setIsCollecting",
+    "setIsMessagePending",
+  ]);
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [isValue, setIsValue] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (inputValue.trim() && !isLoading) {
-      sendMessage();
+    const value = inputRef.current?.value.trim();
+    if (!value || isLoading || !sessionId) return;
+
+    addMessage({
+      id: `${Date.now()}`,
+      text: value,
+      isUser: true,
+      timestamp: new Date(),
+    });
+
+    if (useContext) {
+      setIsMessagePending(true);
+      setIsCollecting(true);
+    } else {
+      fetch(`${apiBase}/api/chat/send`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ sessionId, message: value }),
+      }).catch(() => {});
+    }
+    if (inputRef.current) {
+      inputRef.current.value = "";
+      setIsValue(false);
     }
   };
 
@@ -18,8 +53,8 @@ export const ChatbotInput: React.FC = () => {
     <div className="p-4 border-t border-sidebar-border bg-sidebar-accent/50  rounded-b-lg min-h-[60px]">
       <form onSubmit={handleSubmit} className="flex gap-2">
         <Input
-          value={inputValue}
-          onChange={(e) => setInputValue(e.target.value)}
+          ref={inputRef}
+          onChange={(e) => setIsValue(!!e.currentTarget?.value.trim())}
           placeholder="메시지..."
           className="flex-1 border-sidebar-border focus:border-sidebar-primary text-xs h-8 bg-sidebar text-sidebar-foreground rounded-md"
         />
@@ -27,7 +62,7 @@ export const ChatbotInput: React.FC = () => {
           type="submit"
           size="icon"
           className="h-8 w-8 bg-sidebar-primary disabled:bg-sidebar-primary hover:bg-sidebar-primary/90 text-sidebar-primary-foreground rounded-md"
-          disabled={!inputValue.trim() || isLoading}
+          disabled={!isValue || isLoading}
         >
           <Send className="h-3 w-3" />
         </Button>

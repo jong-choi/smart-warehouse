@@ -1,4 +1,4 @@
-import { useChatbotStore } from "@stores/chatbotStore";
+import { useChatUiStore } from "@stores/chatUiStore";
 import { useEffect, useState } from "react";
 
 export function useWorkersListMessage() {
@@ -6,11 +6,7 @@ export function useWorkersListMessage() {
 
   // 챗봇 관련 훅
   const { setSystemContext, isCollecting, setIsMessagePending } =
-    useChatbotStore([
-      "setSystemContext",
-      "isCollecting",
-      "setIsMessagePending",
-    ]);
+    useChatUiStore(["setSystemContext", "isCollecting", "setIsMessagePending"]);
 
   useEffect(() => {
     if (isCollecting && tableMessage) {

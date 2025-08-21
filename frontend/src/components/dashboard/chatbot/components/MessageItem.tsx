@@ -1,6 +1,9 @@
 import React from "react";
 import { cn } from "@/lib/utils";
-import { type Message } from "@/types/chatbot";
+import {
+  useChatMessagesStore,
+  selectMessageById,
+} from "@/stores/chatMessagesStore";
 import { MessageItemBubble } from "@components/dashboard/chatbot/components/ChatbotMessages/MessageItemBubble";
 import { MessageItemContent } from "@components/dashboard/chatbot/components/ChatbotMessages/MessageItemContent";
 import { MessageItemReasoning } from "@components/dashboard/chatbot/components/ChatbotMessages/MessageItemReasoning";
@@ -9,12 +12,14 @@ import { MessageItemError } from "@components/dashboard/chatbot/components/Chatb
 import { MessageItemStatus } from "@components/dashboard/chatbot/components/ChatbotMessages/MessageItemStatus";
 
 interface MessageItemProps {
-  message: Message;
+  id: string;
   onClearConversation?: () => void;
 }
 
 export const MessageItem = React.memo<MessageItemProps>(
-  ({ message, onClearConversation }) => {
+  ({ id, onClearConversation }) => {
+    const message = useChatMessagesStore(selectMessageById(id));
+    if (!message) return null;
     return (
       <div
         data-message-id={message.id}

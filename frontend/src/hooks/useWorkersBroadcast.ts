@@ -3,9 +3,11 @@ import { createChannelInterface } from "@/utils";
 import type { BroadcastMessage } from "@/types/broadcast";
 import { useWorkersStore } from "@/stores/workersStore";
 import type { WorkerStatus } from "@components/dashboard/home/workers/types";
+import { useShallow } from "zustand/shallow";
 
 export const useWorkersBroadcast = () => {
-  const { updateWorker } = useWorkersStore();
+  const workers = useWorkersStore(useShallow((s) => s.workers));
+  const updateWorker = useWorkersStore((s) => s.updateWorker);
 
   // 브로드캐스트 채널 연결
   const channel = useMemo(() => createChannelInterface("warehouse-events"), []);
@@ -22,7 +24,6 @@ export const useWorkersBroadcast = () => {
         };
         // 작업자가 물건을 처리했을 때
         const workerId = message.workerId as string;
-        const { workers } = useWorkersStore.getState();
         const currentWorker = workers.find((w) => w.id === workerId);
 
         // 최초 작업 시작 시간 설정 (처음 처리할 때만)
@@ -47,7 +48,6 @@ export const useWorkersBroadcast = () => {
       } else if (message.msg === "작업 종료") {
         // 작업자의 쿨다운이 끝났을 때
         const workerId = message.workerId as string;
-        const { workers } = useWorkersStore.getState();
         const currentWorker = workers.find((w) => w.id === workerId);
 
         // 작업시간 계산 및 누적
@@ -69,5 +69,5 @@ export const useWorkersBroadcast = () => {
     });
 
     return unsubscribe;
-  }, [channel, updateWorker]);
+  }, [channel, updateWorker, workers]);
 };

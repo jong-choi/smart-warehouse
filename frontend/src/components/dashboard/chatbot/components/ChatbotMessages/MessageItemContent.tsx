@@ -37,6 +37,10 @@ export const MessageItemContent: React.FC<MessageItemContentProps> = ({
     return { regularChunks: text };
   }, [message.reasoningText, message.text]);
 
+  const shouldRenderMarkdown = !message.isStreaming;
+  if (!shouldRenderMarkdown) {
+    return <div className="text-sm leading-none">{regularChunks}</div>;
+  }
   return (
     <Suspense
       fallback={<div className="text-sm leading-none">{regularChunks}</div>}
