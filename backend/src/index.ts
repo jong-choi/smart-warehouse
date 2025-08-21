@@ -9,8 +9,8 @@ import operatorRoutes from "@src/routes/operatorRoutes";
 import locationRoutes from "@src/routes/locationRoutes";
 import salesRoutes from "@src/routes/salesRoutes";
 import { setupChatbotSocket } from "@src/routes/chatbotRoutes";
-import sseChatbotRoutes from "@src/routes/sseChatbotRoutes";
 import { specs } from "@src/config/swagger";
+import sseChatbotRoutes from "@src/routes/sseChatbotRoutes";
 
 const app = express();
 const server = createServer(app);

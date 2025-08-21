@@ -12,11 +12,13 @@ export const ChatbotInput: React.FC = () => {
   const addMessage = useChatMessagesStore((s) => s.addMessage);
   const { sessionId } = useChatConnectionStore(["sessionId"]);
   const apiBase = import.meta.env.VITE_API_BASE_URL || "";
-  const { useContext, setIsCollecting, setIsMessagePending } = useChatUiStore([
-    "useContext",
-    "setIsCollecting",
-    "setIsMessagePending",
-  ]);
+  const { useContext, setIsCollecting, setIsMessagePending, isDBAllowed } =
+    useChatUiStore([
+      "useContext",
+      "setIsCollecting",
+      "setIsMessagePending",
+      "isDBAllowed",
+    ]);
 
   const inputRef = useRef<HTMLInputElement>(null);
   const [isValue, setIsValue] = useState(false);
@@ -40,7 +42,7 @@ export const ChatbotInput: React.FC = () => {
       fetch(`${apiBase}/api/chat/send`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sessionId, message: value }),
+        body: JSON.stringify({ sessionId, message: value, isDBAllowed }),
       });
       if (inputRef.current) {
         inputRef.current.value = "";
@@ -71,6 +73,7 @@ export const ChatbotInput: React.FC = () => {
         body: JSON.stringify({
           sessionId: sid,
           message: inputRef.current?.value || "",
+          isDBAllowed,
           systemContext,
         }),
       });
@@ -88,6 +91,7 @@ export const ChatbotInput: React.FC = () => {
     setIsCollecting,
     systemContext,
     sessionId,
+    isDBAllowed,
   ]);
 
   return (
@@ -95,7 +99,14 @@ export const ChatbotInput: React.FC = () => {
       <form onSubmit={handleSubmit} className="flex gap-2">
         <Input
           ref={inputRef}
-          onChange={(e) => setIsValue(!!e.currentTarget?.value.trim())}
+          onChange={(e) => {
+            const value = e.currentTarget?.value.trim();
+            setIsValue(!!value);
+            if (inputRef.current && value.length > 100) {
+              inputRef.current.value = value.slice(0, 100);
+            }
+          }}
+          maxLength={100}
           placeholder="메시지..."
           className="flex-1 border-sidebar-border focus:border-sidebar-primary text-xs h-8 bg-sidebar text-sidebar-foreground rounded-md"
         />

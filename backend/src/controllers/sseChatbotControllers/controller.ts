@@ -8,7 +8,7 @@ import {
 import { BaseMessage, SystemMessage } from "@langchain/core/messages";
 import { ChatMessageHistoryWithDeletion } from "@/utils/chatHistory";
 import { sessionStore } from "./sessionStore";
-import { createLLMModel } from "./model";
+import { createLLMModel, createSystemPrompt } from "./model";
 import { MODEL_NAME, SYSTEM_PROMPT } from "./constants";
 
 export default class SSEChatbotController {
@@ -63,7 +63,7 @@ export default class SSEChatbotController {
   };
 
   sendMessage = async (req: Request, res: Response) => {
-    const { sessionId, message, systemContext } = req.body || {};
+    const { sessionId, message, systemContext, isDBAllowed } = req.body || {};
 
     if (!sessionId || typeof message !== "string") {
       return res.status(400).json({ error: "invalid payload" });
@@ -91,12 +91,12 @@ export default class SSEChatbotController {
         historyMessagesKey: "history",
       });
 
-      if (systemContext) {
+      if (systemContext || isDBAllowed) {
         await s.history.deleteMessages(
           (m: BaseMessage) => m.getType() === "system"
         );
         const sys = new SystemMessage({
-          content: `화면 정보 기반으로 답변하세요. 항상 한국어로 답변합니다.\nuser message: ${message}\nscreen context: ${systemContext}`,
+          content: createSystemPrompt(message, systemContext, isDBAllowed),
         });
         await s.history.addMessage(sys);
       }
