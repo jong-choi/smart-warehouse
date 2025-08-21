@@ -6,6 +6,9 @@ export type StreamMessage = {
   isUser: boolean;
   timestamp: Date;
   isStreaming?: boolean;
+  // 모델의 reasoning 요약 스트림 표시용
+  reasoningText?: string;
+  isThinking?: boolean;
 };
 
 type UseSSEChatbotOptions = {
@@ -76,6 +79,8 @@ function useSSEChatbot(options: UseSSEChatbotOptions = {}) {
           isUser: false,
           timestamp: new Date(),
           isStreaming: true,
+          isThinking: false,
+          reasoningText: "",
         });
       });
 
@@ -91,9 +96,49 @@ function useSSEChatbot(options: UseSSEChatbotOptions = {}) {
         }
       });
 
+      // reasoning 토큰 조각 수신
+      src.addEventListener("reasoning", (evt) => {
+        const data = (evt as MessageEvent).data;
+        try {
+          const parsed = JSON.parse(data);
+          const text: string = parsed.text ?? "";
+          const thinking = Boolean(parsed.isThinking);
+          if (!text && !thinking) return;
+          updateLastMessage((m) => ({
+            ...m,
+            reasoningText: (m.reasoningText || "") + (text || ""),
+            isThinking: thinking || m.isThinking,
+          }));
+        } catch {
+          // ignore
+        }
+      });
+
+      // reasoning 최종 요약 수신 (두 이벤트 모두 처리)
+      const handleReasoningSummary = (evt: Event) => {
+        const data = (evt as MessageEvent).data;
+        try {
+          const parsed = JSON.parse(data);
+          const summary: string = parsed.summary ?? "";
+          updateLastMessage((m) => ({
+            ...m,
+            reasoningText: summary || m.reasoningText,
+            isThinking: false,
+          }));
+        } catch {
+          // ignore
+        }
+      };
+      src.addEventListener("reasoning_complete", handleReasoningSummary);
+      src.addEventListener("reasoning_summary", handleReasoningSummary);
+
       src.addEventListener("end", () => {
         setIsLoading(false);
-        updateLastMessage((m) => ({ ...m, isStreaming: false }));
+        updateLastMessage((m) => ({
+          ...m,
+          isStreaming: false,
+          isThinking: false,
+        }));
         streamingMsgIdRef.current = null;
       });
 

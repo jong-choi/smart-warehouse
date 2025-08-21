@@ -17,10 +17,9 @@ function SSEChatbot() {
   const onSubmit = useCallback(
     (e: React.FormEvent) => {
       e.preventDefault();
-      console.log(messages);
       sendMessage();
     },
-    [messages, sendMessage]
+    [sendMessage]
   );
 
   return (
@@ -50,6 +49,17 @@ function SSEChatbot() {
               {m.isUser ? "You" : "Bot"} · {m.timestamp.toLocaleTimeString()}
               {m.isStreaming ? " · streaming" : ""}
             </div>
+            {/* 모델의 생각(Reasoning) 표시 */}
+            {!m.isUser && m.reasoningText ? (
+              <div className="whitespace-pre-wrap text-[11px] text-muted-foreground bg-muted/50 rounded p-2 mb-1">
+                <span className="font-medium">생각</span>
+                <div>{m.reasoningText}</div>
+                {m.isThinking ? (
+                  <span className="opacity-70">(생각 중...)</span>
+                ) : null}
+              </div>
+            ) : null}
+
             <div className="whitespace-pre-wrap">{m.text}</div>
           </div>
         ))}
