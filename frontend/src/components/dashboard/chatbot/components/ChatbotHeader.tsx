@@ -35,7 +35,7 @@ export const ChatbotHeader: React.FC<ChatbotHeaderProps> = ({
                 </div>
               </div>
               <p className="text-[8px] text-sidebar-foreground/50">
-                Powered by Qwen3-0.6B
+                Powered by GPT-5 Nano
               </p>
             </div>
           </div>

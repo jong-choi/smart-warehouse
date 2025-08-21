@@ -10,9 +10,9 @@ export function useChatConnection() {
       "triggerReconnect",
     ]);
 
-  const retryConnection = useCallback(() => {
+  const resetConnection = useCallback(() => {
     triggerReconnect();
   }, [triggerReconnect]);
 
-  return { isConnected, isLoading, connectionFailed, retryConnection };
+  return { isConnected, isLoading, connectionFailed, resetConnection };
 }

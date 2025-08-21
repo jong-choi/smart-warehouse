@@ -16,7 +16,7 @@ export function ChatbotPanel() {
   const currentScreen = getScreenName(location.pathname);
 
   const { isOpen, setIsOpen } = useChatUiStore(["isOpen", "setIsOpen"]);
-  const { retryConnection } = useChatConnection();
+  const { resetConnection } = useChatConnection();
   useChatStreamEffect();
 
   return (
@@ -52,7 +52,7 @@ export function ChatbotPanel() {
             {/* 현재 화면 정보 및 채팅 초기화 버튼 */}
             <ChatbotStatusBar
               currentScreen={currentScreen}
-              onClearConversation={retryConnection}
+              onClearConversation={resetConnection}
             />
 
             {/* 입력 영역 */}

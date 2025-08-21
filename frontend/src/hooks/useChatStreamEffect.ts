@@ -133,6 +133,7 @@ export function useChatStreamEffect(options: Options = {}) {
         src.addEventListener("error", () => {
           setConnectionFailed(true);
           setIsConnected(false);
+          setSessionId(null);
         });
       } catch {
         setConnectionFailed(true);

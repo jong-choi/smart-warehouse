@@ -84,23 +84,16 @@ export const ChatbotStatusBar: React.FC<ChatbotStatusBarProps> = React.memo(
             </span>
           </div>
           <div className="flex items-center gap-1">
-            {connectionFailed && (
-              <div className="text-xs text-sidebar-foreground/60">
-                연결 실패
-              </div>
-            )}
-            {isConnected && (
-              <Button
-                onClick={onClearConversation}
-                variant="ghost"
-                size="sm"
-                className="h-6 px-2 hover:bg-sidebar-accent text-sidebar-foreground/60 hover:text-sidebar-foreground text-xs"
-                title="대화 기록 초기화"
-              >
-                <RotateCcw className="h-3 w-3 mr-1" />
-                대화 초기화
-              </Button>
-            )}
+            <Button
+              onClick={onClearConversation}
+              variant="ghost"
+              size="sm"
+              className="h-6 px-2 hover:bg-sidebar-accent text-sidebar-foreground/60 hover:text-sidebar-foreground text-xs"
+              title="대화 기록 초기화"
+            >
+              <RotateCcw className="h-3 w-3 mr-1" />
+              대화 초기화
+            </Button>
           </div>
         </div>
       </div>
