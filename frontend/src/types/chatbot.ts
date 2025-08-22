@@ -8,6 +8,13 @@ export interface Message {
   // SSE 전용: 모델 reasoning 별도 표기용 (선택적)
   reasoningText?: string;
   isThinking?: boolean;
+  // 툴 이벤트 로깅 (선택적)
+  toolEvents?: Array<{
+    type: "start" | "end";
+    name: string;
+    input?: unknown;
+    at: string;
+  }>;
 }
 
 export interface ChatbotState {

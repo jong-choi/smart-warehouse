@@ -12,7 +12,7 @@ type Props = {
 
 export default function ReactMarkdownApp({ children }: Props) {
   return (
-    <div className="markdown-body new-york-small">
+    <div className="new-york-small whitespace-normal">
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkParse, remarkBreaks, remarkMath]}
         rehypePlugins={[rehypeKatex]}

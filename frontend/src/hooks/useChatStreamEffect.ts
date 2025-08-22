@@ -89,6 +89,54 @@ export function useChatStreamEffect(options: Options = {}) {
           }
         });
 
+        // tool_start 이벤트 수신
+        src.addEventListener("tool_start", (evt) => {
+          try {
+            const parsed = JSON.parse((evt as MessageEvent).data) as {
+              name: string;
+              input?: unknown;
+            };
+            console.log("[tool-start]", parsed.name, parsed.input);
+            updateLastMessage((m) => ({
+              ...m,
+              toolEvents: [
+                ...(m.toolEvents ?? []),
+                {
+                  type: "start",
+                  name: parsed.name,
+                  input: parsed.input,
+                  at: new Date().toISOString(),
+                },
+              ],
+            }));
+          } catch {
+            /* ignore */
+          }
+        });
+
+        // tool_end 이벤트 수신
+        src.addEventListener("tool_end", (evt) => {
+          try {
+            const parsed = JSON.parse((evt as MessageEvent).data) as {
+              name: string;
+            };
+            console.log("[tool-end]", parsed.name);
+            updateLastMessage((m) => ({
+              ...m,
+              toolEvents: [
+                ...(m.toolEvents ?? []),
+                {
+                  type: "end",
+                  name: parsed.name,
+                  at: new Date().toISOString(),
+                },
+              ],
+            }));
+          } catch {
+            /* ignore */
+          }
+        });
+
         src.addEventListener("reasoning", (evt) => {
           try {
             const parsed = JSON.parse((evt as MessageEvent).data);

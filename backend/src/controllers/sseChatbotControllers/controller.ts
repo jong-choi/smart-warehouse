@@ -143,16 +143,23 @@ export default class SSEChatbotController {
       );
 
       for await (const event of eventStream) {
-        // 툴 관련 이벤트 로깅(바인딩/호출 가시화)
+        // 툴 관련 이벤트 로깅(바인딩/호출 가시화) + SSE 브로드캐스트
         if (event?.event === "on_tool_start") {
-          console.log(
-            "[tool-start]",
-            (event as any)?.name,
-            (event as any)?.data?.input
-          );
+          const name = (event as any)?.name;
+          const input = (event as any)?.data?.input;
+          console.log("[tool-start]", name, input);
+          try {
+            s.res.write(`event: tool_start\n`);
+            s.res.write(`data: ${JSON.stringify({ name, input })}\n\n`);
+          } catch {}
         }
         if (event?.event === "on_tool_end") {
-          console.log("[tool-end]", (event as any)?.name);
+          const name = (event as any)?.name;
+          console.log("[tool-end]", name);
+          try {
+            s.res.write(`event: tool_end\n`);
+            s.res.write(`data: ${JSON.stringify({ name })}\n\n`);
+          } catch {}
         }
 
         if (

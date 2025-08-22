@@ -2,8 +2,8 @@
   font-size: 13px;
 
   & p {
-    margin-top: 0.05rem;
-    margin-bottom: 0.05rem;
+    margin-top: 0.3rem;
+    margin-bottom: 0.5rem;
     line-height: 1.2;
   }
 
@@ -35,34 +35,30 @@
 
   & h1 {
     font-size: 1.1rem;
-    line-height: 1.1;
+    line-height: 4rem;
     font-weight: 600;
     margin: -1rem 0.1rem;
-    margin-top: -0.5rem;
   }
 
   & h2 {
     font-size: 1rem;
-    line-height: 1.1;
+    line-height: 3.5rem;
     font-weight: 600;
     margin: -1rem 0.2rem;
-    margin-top: -0.5rem;
   }
 
   & h3 {
     font-size: 0.95rem;
-    line-height: 1.1;
+    line-height: 3.2rem;
     font-weight: 600;
     margin: -1rem 0.25rem;
-    margin-top: -0.5rem;
   }
 
   & h4 {
     font-size: 0.9rem;
-    line-height: 1.1;
+    line-height: 2.8rem;
     font-weight: 600;
     margin: -1rem 0.3rem;
-    margin-top: -0.5rem;
   }
 
   & blockquote {
@@ -101,6 +97,9 @@
   & a {
     color: #0a7cff;
     text-decoration: underline;
+    /* 긴 URL이 한 줄로 넘치지 않도록 줄바꿈 허용 */
+    word-break: break-all;
+    overflow-wrap: anywhere;
   }
 
   & strong {
