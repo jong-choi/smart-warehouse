@@ -6,6 +6,7 @@ export type Session = {
   res?: Response;
   abort?: AbortController;
   history: ChatMessageHistoryWithDeletion;
+  idleTimer?: ReturnType<typeof setTimeout>;
 };
 
 export class SessionStore {
@@ -21,6 +22,32 @@ export class SessionStore {
 
   has(id: string) {
     return this.sessions.has(id);
+  }
+
+  delete(id: string) {
+    const s = this.sessions.get(id);
+    if (s?.idleTimer) {
+      clearTimeout(s.idleTimer);
+      s.idleTimer = undefined;
+    }
+    this.sessions.delete(id);
+  }
+
+  clearIdleTimer(id: string) {
+    const s = this.sessions.get(id);
+    if (s?.idleTimer) {
+      clearTimeout(s.idleTimer);
+      s.idleTimer = undefined;
+    }
+  }
+
+  setIdleTimer(id: string, ms: number, onTimeout: () => void) {
+    const s = this.sessions.get(id);
+    if (!s) return;
+    if (s.idleTimer) {
+      clearTimeout(s.idleTimer);
+    }
+    s.idleTimer = setTimeout(onTimeout, ms);
   }
 }
 

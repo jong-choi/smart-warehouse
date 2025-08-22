@@ -3,12 +3,7 @@ import { randomUUID } from "crypto";
 import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { MemorySaver } from "@langchain/langgraph-checkpoint";
 import { HumanMessage, SystemMessage } from "@langchain/core/messages";
-import type {
-  AIMessage,
-  AIMessageChunk,
-  BaseMessage,
-  MessageContent,
-} from "@langchain/core/messages";
+import type { MessageContent } from "@langchain/core/messages";
 import type { GraphState, AgentConfig } from "@src/typings/sseChatbot";
 import {
   isObject,
@@ -20,7 +15,11 @@ import {
 import { ChatMessageHistoryWithDeletion } from "@/utils/chatHistory";
 import { sessionStore } from "./sessionStore";
 import { createLLMModel, createSystemPrompt } from "./model";
-import { MODEL_NAME, SYSTEM_PROMPT } from "./constants";
+import {
+  MODEL_NAME,
+  SYSTEM_PROMPT,
+  SESSION_IDLE_TIMEOUT_MS,
+} from "./constants";
 import { safeSSEvent } from "@src/utils/safeSSE";
 import { allDbTools, googleSearchTool, mathTool } from "@src/utils/tools";
 
@@ -91,6 +90,17 @@ export default class SSEChatbotController {
   createSession = (req: Request, res: Response) => {
     const id = randomUUID();
     sessionStore.set({ id, history: new ChatMessageHistoryWithDeletion() });
+    //일정 시간 비활성화시 세션 종료
+    sessionStore.setIdleTimer(id, SESSION_IDLE_TIMEOUT_MS, () => {
+      const cur = sessionStore.get(id);
+      cur?.abort?.abort();
+      if (cur?.res) {
+        safeSSEvent(cur.res, "expired", { reason: "idle_timeout" });
+        cur.res.end?.();
+      }
+      checkpointer.deleteThread(id);
+      sessionStore.delete(id);
+    });
     res.json({ sessionId: id });
   };
 
@@ -111,6 +121,17 @@ export default class SSEChatbotController {
     s.res = res;
     s.abort = new AbortController();
 
+    sessionStore.setIdleTimer(id, SESSION_IDLE_TIMEOUT_MS, () => {
+      const cur = sessionStore.get(id);
+      cur?.abort?.abort();
+      if (cur?.res) {
+        safeSSEvent(cur.res, "expired", { reason: "idle_timeout" });
+        cur.res.end?.();
+      }
+      checkpointer.deleteThread(id);
+      sessionStore.delete(id);
+    });
+
     const ping = setInterval(() => {
       if (!safeSSEvent(res, "ping", {})) {
         clearInterval(ping);
@@ -128,6 +149,8 @@ export default class SSEChatbotController {
       clearInterval(ping);
       s.abort?.abort();
       s.res = undefined;
+      sessionStore.delete(id);
+      checkpointer.deleteThread(id);
     });
   };
 
@@ -144,6 +167,8 @@ export default class SSEChatbotController {
     }
 
     try {
+      // 요청이 시작될 때는 타임아웃을 일시 해제하여 스트리밍 중 만료를 방지
+      sessionStore.clearIdleTimer(sessionId);
       safeSSEvent(s.res, "start", {});
 
       let fullResponse = "";
@@ -321,6 +346,20 @@ export default class SSEChatbotController {
         error: "failed to generate",
         details: err instanceof Error ? err.message : String(err),
       });
+    } finally {
+      // 스트리밍이 끝나면 비활성 타이머를 재설정
+      if (sessionStore.has(sessionId)) {
+        sessionStore.setIdleTimer(sessionId, SESSION_IDLE_TIMEOUT_MS, () => {
+          const cur = sessionStore.get(sessionId);
+          cur?.abort?.abort();
+          if (cur?.res) {
+            safeSSEvent(cur.res, "expired", { reason: "idle_timeout" });
+            cur.res.end?.();
+          }
+          void checkpointer.deleteThread(sessionId);
+          sessionStore.delete(sessionId);
+        });
+      }
     }
   };
 
