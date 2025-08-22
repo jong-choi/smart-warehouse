@@ -17,14 +17,12 @@ export function useChatStreamEffect(options: Options = {}) {
     setConnectionFailed,
     sessionId,
     setSessionId,
-    reconnectNonce,
   } = useChatConnectionStore([
     "setIsConnected",
     "setIsLoading",
     "setConnectionFailed",
     "sessionId",
     "setSessionId",
-    "reconnectNonce",
   ]);
 
   const sourceRef = useRef<EventSource | null>(null);
@@ -197,7 +195,6 @@ export function useChatStreamEffect(options: Options = {}) {
   }, [
     apiBase,
     clearMessages,
-    reconnectNonce,
     sessionId,
     setConnectionFailed,
     setIsConnected,

@@ -39,6 +39,7 @@
     "module-alias": "^2.2.3",
     "morgan": "^1.10.0",
     "ollama": "^0.5.16",
+    "openai": "^5.15.0",
     "prisma": "^6.11.1",
     "socket.io": "^4.8.1",
     "swagger-jsdoc": "^6.2.8",
