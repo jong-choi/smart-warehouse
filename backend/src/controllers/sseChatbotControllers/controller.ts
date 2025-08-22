@@ -1,15 +1,66 @@
 import type { Request, Response } from "express";
 import { randomUUID } from "crypto";
-import { RunnableWithMessageHistory } from "@langchain/core/runnables";
-import {
-  ChatPromptTemplate,
-  MessagesPlaceholder,
-} from "@langchain/core/prompts";
-import { BaseMessage, SystemMessage } from "@langchain/core/messages";
+import { createReactAgent } from "@langchain/langgraph/prebuilt";
+import { MemorySaver } from "@langchain/langgraph-checkpoint";
+import { HumanMessage, SystemMessage } from "@langchain/core/messages";
 import { ChatMessageHistoryWithDeletion } from "@/utils/chatHistory";
 import { sessionStore } from "./sessionStore";
 import { createLLMModel, createSystemPrompt } from "./model";
 import { MODEL_NAME, SYSTEM_PROMPT } from "./constants";
+import { googleSearchTool } from "@src/utils/googleSearchTool";
+
+// LangGraph 메모리 체크포인터 및 에이전트를 모듈 스코프로 1회 생성해 세션별(thread_id) 히스토리를 유지
+const checkpointer = new MemorySaver();
+
+const agent = createReactAgent({
+  llm: async () => createLLMModel(),
+  tools: [googleSearchTool],
+  checkpointer,
+  // 요청 시 config.configurable에 전달된 systemContext/isDBAllowed를 이용해
+  // 해당 턴의 LLM 입력에만 SystemMessage를 prepend (영구 히스토리 오염 방지)
+  prompt: (state: any, config: any) => {
+    const cfg = (config?.configurable ?? {}) as {
+      systemContext?: string;
+      isDBAllowed?: boolean;
+    };
+
+    const messages = (state as any)?.messages ?? [];
+    const baseline = [
+      new SystemMessage({ content: SYSTEM_PROMPT }),
+      ...messages,
+    ];
+
+    let userText = "";
+    for (let i = messages.length - 1; i >= 0; i--) {
+      const m = messages[i];
+      if (typeof m?.getType === "function" && m.getType() === "human") {
+        const c = (m as any).content;
+        if (typeof c === "string") {
+          userText = c;
+        } else if (Array.isArray(c)) {
+          userText = c
+            .map((p: any) => (typeof p?.text === "string" ? p.text : ""))
+            .filter(Boolean)
+            .join("");
+        }
+        break;
+      }
+    }
+    let sysContent: string | undefined;
+    if (cfg.systemContext || cfg.isDBAllowed) {
+      sysContent = createSystemPrompt(
+        userText,
+        cfg.systemContext || "",
+        !!cfg.isDBAllowed
+      );
+    }
+
+    if (typeof sysContent === "string" && sysContent) {
+      return [new SystemMessage({ content: sysContent }), ...baseline];
+    }
+    return baseline;
+  },
+});
 
 export default class SSEChatbotController {
   createSession = (req: Request, res: Response) => {
@@ -75,32 +126,6 @@ export default class SSEChatbotController {
     }
 
     try {
-      const prompt = ChatPromptTemplate.fromMessages([
-        ["system", SYSTEM_PROMPT],
-        new MessagesPlaceholder("history"),
-        ["human", "{input}"],
-      ]);
-
-      const llm = createLLMModel();
-      const runnable = prompt.pipe(llm);
-
-      const chatChain = new RunnableWithMessageHistory({
-        runnable,
-        getMessageHistory: async () => s.history,
-        inputMessagesKey: "input",
-        historyMessagesKey: "history",
-      });
-
-      if (systemContext || isDBAllowed) {
-        await s.history.deleteMessages(
-          (m: BaseMessage) => m.getType() === "system"
-        );
-        const sys = new SystemMessage({
-          content: createSystemPrompt(message, systemContext, isDBAllowed),
-        });
-        await s.history.addMessage(sys);
-      }
-
       s.res.write(`event: start\ndata: {}\n\n`);
 
       let fullResponse = "";
@@ -108,17 +133,21 @@ export default class SSEChatbotController {
       let reasoningTokens = 0;
       let reasoningBuffer = "";
 
-      const eventStream = chatChain.streamEvents({ input: message }, {
-        version: "v2",
-        signal: s.abort?.signal,
-        configurable: { sessionId },
-      } as any);
+      const eventStream = agent.streamEvents(
+        { messages: [new HumanMessage(message)] },
+        {
+          version: "v2",
+          signal: s.abort?.signal,
+          configurable: { thread_id: sessionId, systemContext, isDBAllowed },
+        }
+      );
 
       for await (const event of eventStream) {
         if (
           event?.event !== "on_chat_model_stream" &&
           event?.event !== "on_chat_model_end"
         ) {
+          console.log(event.event);
           continue;
         }
 
@@ -250,6 +279,7 @@ export default class SSEChatbotController {
     }
 
     await s.history.clear();
+    await checkpointer.deleteThread(sessionId);
 
     s.res?.write(`event: start\ndata: {}\n\n`);
     s.res?.write(

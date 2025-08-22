@@ -23,6 +23,7 @@
     "@langchain/anthropic": "^0.3.24",
     "@langchain/community": "^0.3.49",
     "@langchain/core": "^0.3.66",
+    "@langchain/langgraph": "^0.4.6",
     "@langchain/ollama": "^0.2.3",
     "@langchain/openai": "^0.6.9",
     "@prisma/client": "^6.11.1",
