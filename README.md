@@ -7,6 +7,7 @@
 
 - 프로젝트 시작일 : 2025.07.06
 - 프로젝트 1차 배포 : 2025.07.28
+- 프로젝트 2차 배포 : 2025.08.22 (LLM 모델 변경 / 아키텍처 변경)
 - 배포주소 : [https://warehouse.jongchoi.com](https://warehouse.jongchoi.com)
 - 기술스택
   - 프론트엔드 : React, Zustand, Shadcn UI, Tanstack Query, Tanstack Table, Rechart, Socket.io
@@ -63,6 +64,59 @@
 
 ## 챗봇
 
+> **2025-08-22** 업데이트 내역
+>
+> - Tool Calls 기능이 포함된 gpt-5-nano 모델이 출시됨에 따라 기존에 사용하던 qwen-3-0.6b 모델에서 gpt-5-nano 모델로 변경이 있었습니다.
+> - 모델 변경과 함께 웹 소켓 방식에서 SSE 방식으로 아키텍처를 변경하였습니다.
+> - 이제 인공지능 모델이 DB를 직접 조회할 수 있습니다.
+> - 프론트엔드의 챗봇 패널에 렌더링 성능 개선 작업이 있었습니다.
+
+### 챗봇 시퀀스 다이어그램
+
+<img src="./docs/diagram_2025-08-22_23-51-13.png" alt="2025-08-22 챗봇 시퀀스 다이어그램" style="max-height:400px;" />
+
+- Server-Sent Events를 통해 백엔드와 실시간으로 소통하도록 구현하였습니다.
+- LangGraph.js를 활용하여 인공지능 에이전트가 DB의 정보를 조회하고 응답할 수 있습니다.
+- 인공지능 에이전트 모델은 GPT-5-nano 모델이 사용되었습니다.
+
+### 화면 기반 대화
+
+![화면 기반 대화](/docs/chat_2025-08-23_00-04-32.png)
+
+- 화면 기반 대화를 켜면, 인공지능이 사용자의 화면에 있는 정보를 기반으로 응답합니다.
+- 테이블을 마크다운 형태로 파싱하는 유틸함수([tableToMarkdown.ts](/frontend/src/utils/tableToMarkdown.ts))를 통해 화면 상의 테이블을 마크다운 형태의 메시지로 담아 전송하게 됩니다.
+
+### DB기반 대화
+
+<div style="display: flex; gap: 20px; align-items: flex-start;">
+  <img src="./docs/chat-db-2025-08-23-1.apng" alt="DB 기반 대화1" style="flex: 1; height: auto;" />
+  <img src="./docs/chat-db-2025-08-23-2.apng" alt="DB 기반 대화2" style="flex: 1; height: auto;" />
+</div>
+
+- 사용자가 허용하는 경우 인공지능은 DB 조회 도구를 호출합니다.
+- 인공지능의 요청으로 DB를 조회하는 툴 콜링([tools/index](/backend/src/utils/tools))을 통해 DB 조회 데이터를 전달받아 이를 응답에 활용합니다.
+
+### 멀티턴
+
+<div style="display: flex; gap: 20px; align-items: flex-start;">
+  <img src="./docs/multiturn-2025-08-22.png" alt="멀티턴 대화1" style="flex: 1; height: auto;" />
+  <img src="./docs/multiturn-2025-08-22-2.png" alt="멀티턴 대화2" style="flex: 1; height: auto;" />
+</div>
+
+- LangChain.js의 체크 포인터를 이용하여 대화의 맥락을 유지한 채 대화가 가능합니다. ([sseChatbotControllers.ts](/backend/src/controllers/sseChatbotControllers/controller.ts))
+- 메모리는 각 세션별로 저장되며, 대화를 초기화하면 메모리가 사라집니다.
+- 메모리 누수를 막기 위해 각 세션은 일정 시간 활동이 없으면 종료됩니다.
+
+### 프롬프트 엔지니어링
+
+![프롬프트 엔지니어링](/docs/prompt-engineering-2025-08-22.png)
+
+- 주제에서 벗어난 대화를 막도록 프롬프트 엔지니어링이 되어 있습니다.
+- gpt-5-nano와 같이 추론 기능이 포함된 LLM들이 프롬프트 제약을 벗어나지 않도록 작동하는 것을 확인할 수 있었습니다.
+
+<details>
+  <summary>2025.07.28 버전 챗봇 설명</summary>
+
 ![화면 기반 대화 시퀀스 다이어그램](/docs/chatbot-diagram.png)
 
 - Socket.io를 통해 웹소켓으로 백엔드와 실시간 소통을 하도록 구현하였습니다.
@@ -101,3 +155,4 @@
   2. 하지만 Thinking모델 특성상 적은 컨텍스트에서는 타 모델들 대비 정확한 답변을 하였으며, 특히 프롬프트 엔지니어링에 따라 답변 정확도와 속도가 개선되는 특성을 보였습니다.
   3. 또한 LLM의 사고과정을 화면에 함께 보여줄 수 있다는 점이 실제 챗봇이 작동하고 있다는 느낌을 주고, 사용자로 하여금 더 나은 질문을 하도록 돕는 효과가 있습니다.
   4. 그 밖에 Funtion Calling 등으로 점차 기능을 확장하거나, 인터페이스가 유사한 OpenAI 모델로 전환할 수 있는 장점이 있습니다.
+  </details>
