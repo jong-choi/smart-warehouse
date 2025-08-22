@@ -13,7 +13,7 @@ import { googleSearchTool } from "@src/utils/googleSearchTool";
 const checkpointer = new MemorySaver();
 
 const agent = createReactAgent({
-  llm: async () => createLLMModel(),
+  llm: createLLMModel(),
   tools: [googleSearchTool],
   checkpointer,
   // 요청 시 config.configurable에 전달된 systemContext/isDBAllowed를 이용해
@@ -143,11 +143,22 @@ export default class SSEChatbotController {
       );
 
       for await (const event of eventStream) {
+        // 툴 관련 이벤트 로깅(바인딩/호출 가시화)
+        if (event?.event === "on_tool_start") {
+          console.log(
+            "[tool-start]",
+            (event as any)?.name,
+            (event as any)?.data?.input
+          );
+        }
+        if (event?.event === "on_tool_end") {
+          console.log("[tool-end]", (event as any)?.name);
+        }
+
         if (
           event?.event !== "on_chat_model_stream" &&
           event?.event !== "on_chat_model_end"
         ) {
-          console.log(event.event);
           continue;
         }
 
@@ -181,6 +192,8 @@ export default class SSEChatbotController {
                     text: block.text,
                   })}\n\n`
                 );
+              } else {
+                console.log(event.event);
               }
             }
           }

@@ -6,6 +6,7 @@ const GOOGLE_CX = process.env.GOOGLE_SEARCH_CX!;
 
 export const googleSearchTool = tool(
   async ({ query }) => {
+    console.log(query);
     try {
       const params = new URLSearchParams({
         key: GOOGLE_API_KEY,
@@ -44,7 +45,7 @@ export const googleSearchTool = tool(
   },
   {
     name: "google_search",
-    description: "구글에서 실시간 정보를 검색합니다.",
+    description: "구글 커스텀 검색(CSE)으로 최신 정보를 조회합니다.",
     schema: z.object({
       query: z.string().describe("검색할 키워드 또는 질문"),
     }),

@@ -7,7 +7,7 @@ export const createLLMModel = () => {
     apiKey: process.env.OPENAI_API_KEY,
     streaming: true,
     useResponsesApi: true,
-    reasoning: { summary: "auto" },
+    reasoning: { effort: "high", summary: "auto" },
     streamUsage: true,
   });
 };
