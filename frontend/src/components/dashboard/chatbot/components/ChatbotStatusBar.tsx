@@ -124,7 +124,14 @@ export const ChatbotStatusBar: React.FC<ChatbotStatusBarProps> = React.memo(
                     "text-sidebar-foreground hover:text-muted-foreground"
                 )}
               >
-                DB 허용
+                DB 조회
+                <span
+                  className={
+                    "text-xs text-muted-foreground/50 select-none ml-1"
+                  }
+                >
+                  {isDBAllowed ? "사용" : "사용 안함"}
+                </span>
               </label>
             </div>
           </div>

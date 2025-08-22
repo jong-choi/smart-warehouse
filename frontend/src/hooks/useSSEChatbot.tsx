@@ -119,8 +119,6 @@ export function useSSEChatbot(options: UseSSEChatbotOptions = {}) {
           const parsed = JSON.parse((evt as MessageEvent).data);
           const name = parsed.name as string;
           const input = parsed.input;
-          // 콘솔 로깅 및 메시지 상태 업데이트
-          console.log("[tool-start]", name, input);
           updateLastMessage((m) => ({
             ...m,
             toolEvents: [
@@ -138,7 +136,6 @@ export function useSSEChatbot(options: UseSSEChatbotOptions = {}) {
         try {
           const parsed = JSON.parse((evt as MessageEvent).data);
           const name = parsed.name as string;
-          console.log("[tool-end]", name);
           updateLastMessage((m) => ({
             ...m,
             toolEvents: [

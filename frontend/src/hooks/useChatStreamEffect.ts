@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useChatMessagesStore } from "@/stores/chatMessagesStore";
 import { useChatConnectionStore } from "@/stores/chatConnectionStore";
 
@@ -17,19 +17,23 @@ export function useChatStreamEffect(options: Options = {}) {
     setConnectionFailed,
     sessionId,
     setSessionId,
+    reconnectTrigger,
   } = useChatConnectionStore([
     "setIsConnected",
     "setIsLoading",
     "setConnectionFailed",
     "sessionId",
     "setSessionId",
+    "reconnectTrigger",
   ]);
+
+  const [aborted, setAborted] = useState(false);
 
   const sourceRef = useRef<EventSource | null>(null);
 
   useEffect(() => {
-    let aborted = false;
-
+    setAborted(false); // useEffect 시작시 aborted 초기화
+    if (aborted) return;
     const connect = async () => {
       try {
         if (sourceRef.current) {
@@ -82,7 +86,8 @@ export function useChatStreamEffect(options: Options = {}) {
             const text: string = parsed.text ?? "";
             if (!text) return;
             updateLastMessage((m) => ({ ...m, text: (m.text || "") + text }));
-          } catch {
+          } catch (e) {
+            console.log(e);
             /* ignore */
           }
         });
@@ -107,7 +112,8 @@ export function useChatStreamEffect(options: Options = {}) {
                 },
               ],
             }));
-          } catch {
+          } catch (e) {
+            console.log(e);
             /* ignore */
           }
         });
@@ -130,7 +136,8 @@ export function useChatStreamEffect(options: Options = {}) {
                 },
               ],
             }));
-          } catch {
+          } catch (e) {
+            console.log(e);
             /* ignore */
           }
         });
@@ -146,7 +153,8 @@ export function useChatStreamEffect(options: Options = {}) {
               reasoningText: (m.reasoningText || "") + (text || ""),
               isThinking: thinking || m.isThinking,
             }));
-          } catch {
+          } catch (e) {
+            console.log(e);
             /* ignore */
           }
         });
@@ -160,7 +168,8 @@ export function useChatStreamEffect(options: Options = {}) {
               reasoningText: summary || m.reasoningText,
               isThinking: false,
             }));
-          } catch {
+          } catch (e) {
+            console.log(e);
             /* ignore */
           }
         };
@@ -189,7 +198,7 @@ export function useChatStreamEffect(options: Options = {}) {
 
     connect();
     return () => {
-      aborted = true;
+      setAborted(true);
       sourceRef.current?.close();
     };
   }, [
@@ -202,5 +211,7 @@ export function useChatStreamEffect(options: Options = {}) {
     setSessionId,
     addMessage,
     updateLastMessage,
+    reconnectTrigger,
+    aborted,
   ]);
 }

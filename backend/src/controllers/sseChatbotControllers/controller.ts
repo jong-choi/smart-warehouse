@@ -9,25 +9,23 @@ import type {
   BaseMessage,
   MessageContent,
 } from "@langchain/core/messages";
-import type { RunnableConfig } from "@langchain/core/runnables";
+import type { GraphState, AgentConfig } from "@src/typings/sseChatbot";
+import {
+  isObject,
+  isToolStartEvent,
+  isToolEndEvent,
+  isChatStreamEvent,
+  isChatEndEvent,
+} from "@src/typings/sseChatbot";
 import { ChatMessageHistoryWithDeletion } from "@/utils/chatHistory";
 import { sessionStore } from "./sessionStore";
 import { createLLMModel, createSystemPrompt } from "./model";
 import { MODEL_NAME, SYSTEM_PROMPT } from "./constants";
-import { googleSearchTool } from "@src/utils/googleSearchTool";
 import { safeSSEvent } from "@src/utils/safeSSE";
+import { allDbTools, googleSearchTool, mathTool } from "@src/utils/tools";
 
 // LangGraph 메모리 체크포인터 및 에이전트를 모듈 스코프로 1회 생성해 세션별(thread_id) 히스토리를 유지
 const checkpointer = new MemorySaver();
-
-type GraphState = { messages: BaseMessage[] };
-type AgentConfig = RunnableConfig & {
-  configurable?: {
-    systemContext?: string;
-    isDBAllowed?: boolean;
-    thread_id?: string;
-  };
-};
 
 const extractText = (content: string | MessageContent[]): string => {
   if (typeof content === "string") return content;
@@ -45,56 +43,10 @@ const extractText = (content: string | MessageContent[]): string => {
   return parts.join("");
 };
 
-type ToolStartEvent = {
-  event: "on_tool_start";
-  name: string;
-  data?: { input?: unknown };
-};
-type ToolEndEvent = { event: "on_tool_end"; name: string };
-type ChatStreamEvent = {
-  event: "on_chat_model_stream";
-  data?: { chunk?: AIMessageChunk };
-};
-type ChatEndEvent = {
-  event: "on_chat_model_end";
-  data?: { output?: AIMessage };
-};
-
-function isObject(value: unknown): value is Record<string, unknown> {
-  return typeof value === "object" && value !== null;
-}
-
-function isToolStartEvent(e: unknown): e is ToolStartEvent {
-  return (
-    isObject(e) &&
-    (e as { event?: unknown }).event === "on_tool_start" &&
-    typeof (e as { name?: unknown }).name === "string"
-  );
-}
-
-function isToolEndEvent(e: unknown): e is ToolEndEvent {
-  return (
-    isObject(e) &&
-    (e as { event?: unknown }).event === "on_tool_end" &&
-    typeof (e as { name?: unknown }).name === "string"
-  );
-}
-
-function isChatStreamEvent(e: unknown): e is ChatStreamEvent {
-  return (
-    isObject(e) && (e as { event?: unknown }).event === "on_chat_model_stream"
-  );
-}
-
-function isChatEndEvent(e: unknown): e is ChatEndEvent {
-  return (
-    isObject(e) && (e as { event?: unknown }).event === "on_chat_model_end"
-  );
-}
-
+// ReAct 에이전트 생성 (싱글톤)
 const agent = createReactAgent({
   llm: createLLMModel(),
-  tools: [googleSearchTool],
+  tools: [googleSearchTool, mathTool, ...allDbTools],
   checkpointer,
   // 요청 시 config.configurable에 전달된 systemContext/isDBAllowed를 이용해
   // 해당 턴의 LLM 입력에만 SystemMessage를 prepend (영구 히스토리 오염 방지)
@@ -116,25 +68,25 @@ const agent = createReactAgent({
         break;
       }
     }
+
     let sysContent: string | undefined;
-    if (
-      (cfg as { systemContext?: string }).systemContext ||
-      (cfg as { isDBAllowed?: boolean }).isDBAllowed
-    ) {
+    if (cfg.systemContext || cfg.isDBAllowed) {
       sysContent = createSystemPrompt(
         userText,
-        (cfg as { systemContext?: string }).systemContext || "",
-        !!(cfg as { isDBAllowed?: boolean }).isDBAllowed
+        cfg.systemContext || "",
+        !!cfg.isDBAllowed
       );
     }
 
     if (typeof sysContent === "string" && sysContent) {
       return [new SystemMessage({ content: sysContent }), ...baseline];
     }
+
     return baseline;
   },
 });
 
+// 챗봇 로직
 export default class SSEChatbotController {
   createSession = (req: Request, res: Response) => {
     const id = randomUUID();
@@ -154,7 +106,7 @@ export default class SSEChatbotController {
     res.setHeader("Cache-Control", "no-cache, no-transform");
     res.setHeader("Connection", "keep-alive");
     res.setHeader("X-Accel-Buffering", "no");
-    (res as Response & { flushHeaders?: () => void }).flushHeaders?.();
+    (res as any).flushHeaders?.();
 
     s.res = res;
     s.abort = new AbortController();
@@ -199,8 +151,15 @@ export default class SSEChatbotController {
       let reasoningTokens = 0;
       let reasoningBuffer = "";
 
+      // 스트림 이벤트로 에이전트 호출. 응답 버전은 v2.
       const eventStream = agent.streamEvents(
-        { messages: [new HumanMessage(message)] },
+        {
+          messages: [
+            new HumanMessage(
+              message + `(DBTools : ${isDBAllowed ? "Allowed" : "Prohibited"})`
+            ),
+          ],
+        },
         {
           version: "v2",
           signal: s.abort?.signal,
@@ -213,17 +172,16 @@ export default class SSEChatbotController {
         if (isToolStartEvent(event)) {
           const { name, data } = event;
           const input = data?.input;
-          console.log("[tool-start]", name, input);
           safeSSEvent(s.res, "tool_start", { name, input });
           continue;
         }
         if (isToolEndEvent(event)) {
           const { name } = event;
-          console.log("[tool-end]", name);
           safeSSEvent(s.res, "tool_end", { name });
           continue;
         }
 
+        // 채팅 응답 이벤트
         if (isChatStreamEvent(event)) {
           const chunk = event.data?.chunk;
           if (!chunk) continue;
@@ -256,6 +214,7 @@ export default class SSEChatbotController {
             }
           }
 
+          // gpt-5 계열의 reasoning 요약이 담기는 부분
           const kw = isObject(chunk.additional_kwargs)
             ? (chunk.additional_kwargs as Record<string, unknown>)
             : undefined;
@@ -297,6 +256,7 @@ export default class SSEChatbotController {
             });
           }
 
+          // reasoning 요약 추출하여 완성본 재송신
           const metaSummary =
             (md &&
             Array.isArray(
@@ -335,6 +295,7 @@ export default class SSEChatbotController {
         }
       }
 
+      // 채팅 종료시 end 이벤트 발생
       safeSSEvent(s.res, "end", {
         fullResponse,
         reasoningSummary: fullReasoning || "No reasoning summary available",
@@ -363,6 +324,7 @@ export default class SSEChatbotController {
     }
   };
 
+  // 세션을 유지하고 히스토리를 클리어
   clearHistory = async (req: Request, res: Response) => {
     const { sessionId } = req.body || {};
     const s = sessionId ? sessionStore.get(sessionId) : undefined;

@@ -9,6 +9,7 @@ services:
       - .env.local
     ports:
       - "3050:80"
+    # 빌드한 폴더를 복사해서 배포합니다. 별도 배포 명령어 실행안함.
     volumes:
       - /etc/letsencrypt:/etc/letsencrypt:ro
       - ./dist:/usr/share/nginx/html

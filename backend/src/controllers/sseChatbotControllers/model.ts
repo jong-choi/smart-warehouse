@@ -7,7 +7,7 @@ export const createLLMModel = () => {
     apiKey: process.env.OPENAI_API_KEY,
     streaming: true,
     useResponsesApi: true,
-    reasoning: { effort: "high", summary: "auto" },
+    reasoning: { summary: "auto" },
     streamUsage: true,
   });
 };
@@ -22,8 +22,8 @@ export const createSystemPrompt = (
 user message: ${message},
 ${
   isDBAllowed
-    ? "도구 호출이 가능합니다. \nDB Tools is Allowed\n"
-    : "DB Tools is NOT Allowed\n"
+    ? "도구 호출이 가능합니다. \nDB Tools : Allowed\n"
+    : "DB Tools : NOT Allowed\n"
 }
 ${
   systemContext

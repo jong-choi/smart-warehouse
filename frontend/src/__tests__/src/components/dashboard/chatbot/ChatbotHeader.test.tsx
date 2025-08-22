@@ -8,9 +8,7 @@ describe("<ChatbotHeader />", () => {
     const user = userEvent.setup();
     const onToggle = () => {};
     const onClose = vi.fn();
-    render(
-      <ChatbotHeader isOpen isConnected onToggle={onToggle} onClose={onClose} />
-    );
+    render(<ChatbotHeader isOpen onToggle={onToggle} onClose={onClose} />);
     // 연결(와이파이) 아이콘 근처 텍스트가 존재(접근 가능한 텍스트가 없으므로 간단 존재성 검사)
     expect(screen.getByText("챗봇")).toBeInTheDocument();
     const btns = screen.getAllByRole("button");
@@ -23,12 +21,7 @@ describe("<ChatbotHeader />", () => {
     const onToggle = vi.fn();
     const onClose = () => {};
     render(
-      <ChatbotHeader
-        isOpen={false}
-        isConnected={false}
-        onToggle={onToggle}
-        onClose={onClose}
-      />
+      <ChatbotHeader isOpen={false} onToggle={onToggle} onClose={onClose} />
     );
     const btn = screen.getByRole("button");
     await user.click(btn);

@@ -1,8 +1,8 @@
+// 웹소켓과 랭체인을 사용한 서비스입니다.
 import { Server as SocketIOServer } from "socket.io";
 import { Server as HTTPServer } from "http";
 import { Ollama } from "ollama";
 import { ChatOllama } from "@langchain/ollama";
-import { ChatOpenAI } from "@langchain/openai";
 import { RunnableWithMessageHistory } from "@langchain/core/runnables";
 import {
   ChatPromptTemplate,
@@ -25,6 +25,21 @@ const MODEL_NAME_MAP = {
 
 // Ollama 모델 설정
 const MODEL_NAME = MODEL_NAME_MAP.qwen306;
+
+const createUserMessage = ({
+  message,
+  systemContext,
+}: {
+  message: string;
+  systemContext: string;
+}) => {
+  return `
+The user is viewing a screen and has provided the current visible information. Based on this screen context, give a detailed and context-aware response that explains or helps the user. 
+Give a detailed and precise response. Be especially careful not to make mistakes in names, places, or any proper nouns.
+Always respond only in Korean. Never use Chinese. Never use Chinese. Never use Chinese.
+user message : ${message} 
+this screen context : ${systemContext}`;
+};
 
 export const fetchWithSecretKey = (
   url: Request | string | URL,
@@ -66,13 +81,6 @@ export const createLLMModel = () => {
     streaming: true,
   });
 };
-// export const createLLMModel = () => {
-//   return new ChatOpenAI({
-//     model: "gpt-4.1-nano-2025-04-14",
-//     temperature: 0,
-//     apiKey: process.env.OPENAI_API_KEY,
-//   });
-// };
 
 const SYSTEM_PROMPT = `당신은 물류 관리 시스템을 위한 전문 챗봇입니다. 항상 한국어로 친절하고 정확하게 답변해주세요. 물류, 운송, 창고 관리, 배송 등과 관련하여 특히 전문적이고 실용적인 면모를 발휘해주세요.`;
 
@@ -191,12 +199,10 @@ export const setupChatbotSocket = (server: HTTPServer) => {
                 return messageType === "system";
               }
             );
-            const systemMessage = `
-The user is viewing a screen and has provided the current visible information. Based on this screen context, give a detailed and context-aware response that explains or helps the user. 
-Give a detailed and precise response. Be especially careful not to make mistakes in names, places, or any proper nouns.
-Always respond only in Korean. Never use Chinese. Never use Chinese. Never use Chinese.
-user message : ${data.message} 
-this screen context : ${data.systemContext}`;
+            const systemMessage = createUserMessage({
+              message: data.message,
+              systemContext: data.systemContext,
+            });
             await chatMessageHistoryWithDeletion.addMessage(
               new SystemMessage({
                 content: systemMessage,
