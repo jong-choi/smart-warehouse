@@ -2,7 +2,119 @@ import { PrismaClient, OperatorType, WaybillStatus } from "@generated/prisma";
 import { faker } from "@faker-js/faker";
 
 const prisma = new PrismaClient();
+type WaybillEntry = {
+  number: string;
+  unloadDate: Date;
+  operatorIndex: number;
+  locationIndex: number;
+  status: WaybillStatus;
+  processedAt: Date;
+  isAccident: boolean;
+  declaredValue: number;
+};
 
+type WaybillSeedInput = {
+  date: Date;
+  index: number;
+  operatorCount: number;
+  locationCount: number;
+  number: string;
+};
+
+function getWeekdaysBetween(start: Date, end: Date): Date[] {
+  const dates: Date[] = [];
+  const current = new Date(start);
+
+  while (current <= end) {
+    const day = current.getDay();
+    if (day !== 0 && day !== 6) {
+      dates.push(new Date(current));
+    }
+    current.setDate(current.getDate() + 1);
+  }
+
+  return dates;
+}
+function createWaybillEntry({
+  date,
+  index,
+  operatorCount,
+  locationCount,
+}: WaybillSeedInput): WaybillEntry {
+  const formattedDate = date.toISOString().slice(0, 10).replace(/-/g, "");
+  const number = `WB${formattedDate}${String(index + 1).padStart(5, "0")}`;
+  const operatorIndex = faker.number.int({
+    min: 0,
+    max: operatorCount - 1,
+  });
+  const locationIndex = faker.number.int({
+    min: 0,
+    max: locationCount - 1,
+  });
+
+  const isAccident = faker.number.float({ min: 0, max: 1 }) < 0.07;
+
+  const status = isAccident
+    ? WaybillStatus.ACCIDENT
+    : faker.helpers.arrayElement([
+        WaybillStatus.NORMAL,
+        WaybillStatus.UNLOADED,
+      ]);
+
+  const processedAt = new Date(date);
+  processedAt.setDate(date.getDate() + 1);
+  processedAt.setHours(faker.number.int({ min: 8, max: 17 }));
+  processedAt.setMinutes(faker.number.int({ min: 0, max: 59 }));
+
+  const declaredValue = faker.number.int({ min: 30000, max: 100000 });
+
+  return {
+    number,
+    unloadDate: date,
+    operatorIndex,
+    locationIndex,
+    status,
+    processedAt,
+    isAccident,
+    declaredValue,
+  };
+}
+function generateWaybillData(
+  operatorCount: number,
+  locationCount: number
+): WaybillEntry[] {
+  const start = new Date("2025-04-01");
+  const end = new Date("2025-07-15");
+  const allWeekdays = getWeekdaysBetween(start, end);
+
+  const shuffled = faker.helpers.shuffle(allWeekdays);
+  const selectedDates = shuffled.slice(0, 60);
+
+  const result: WaybillEntry[] = [];
+
+  for (const date of selectedDates) {
+    const dateStr = date.toISOString().slice(0, 10);
+    const count = faker.number.int({ min: 600, max: 900 });
+
+    for (let i = 0; i < count; i++) {
+      const number = `WB${dateStr.replace(/-/g, "")}${String(i + 1).padStart(
+        5,
+        "0"
+      )}`;
+      result.push(
+        createWaybillEntry({
+          date,
+          index: i,
+          operatorCount,
+          locationCount,
+          number,
+        })
+      );
+    }
+  }
+
+  return result;
+}
 export async function chunkedPromiseAll<T>(
   promises: Promise<T>[],
   chunkSize = 1000
@@ -19,7 +131,6 @@ export async function chunkedPromiseAll<T>(
 }
 async function seedData() {
   try {
-    // 기존 데이터 삭제 (순서 중요: 외래키 제약조건 때문에)
     await prisma.parcel.deleteMany();
     await prisma.operatorWork.deleteMany();
     await prisma.operatorShift.deleteMany();
@@ -27,7 +138,6 @@ async function seedData() {
     await prisma.operator.deleteMany();
     await prisma.location.deleteMany();
 
-    // 배송지 생성
     const SEOUL_LOCATIONS = [
       { name: "서울시 강남구", address: "서울시 강남구 학동로 426" },
       { name: "서울시 강동구", address: "서울시 강동구 성내로 25" },
@@ -64,10 +174,8 @@ async function seedData() {
       )
     );
 
-    // 작업자 생성
     const operators = await chunkedPromiseAll<never>([]);
 
-    // A1~B10 코드의 기계들 생성 (이름은 A01, B02 형식)
     const machineCodes = [];
     for (let i = 1; i <= 10; i++) {
       machineCodes.push(`A${i}`);
@@ -91,126 +199,8 @@ async function seedData() {
       )
     );
 
-    // 모든 작업자 배열에 기계들 추가
     const allOperators = [...operators, ...machines];
 
-    // 운송장 생성
-    // 날짜유틸함수
-
-    function getWeekdaysBetween(start: Date, end: Date): Date[] {
-      const dates: Date[] = [];
-      const current = new Date(start);
-
-      while (current <= end) {
-        const day = current.getDay();
-        if (day !== 0 && day !== 6) {
-          dates.push(new Date(current));
-        }
-        current.setDate(current.getDate() + 1);
-      }
-
-      return dates;
-    }
-
-    type WaybillEntry = {
-      number: string;
-      unloadDate: Date;
-      operatorIndex: number;
-      locationIndex: number;
-      status: WaybillStatus;
-      processedAt: Date;
-      isAccident: boolean;
-      declaredValue: number;
-    };
-
-    type WaybillSeedInput = {
-      date: Date;
-      index: number;
-      operatorCount: number;
-      locationCount: number;
-      number: string;
-    };
-
-    function createWaybillEntry({
-      date,
-      index,
-      operatorCount,
-      locationCount,
-    }: WaybillSeedInput): WaybillEntry {
-      const formattedDate = date.toISOString().slice(0, 10).replace(/-/g, "");
-      const number = `WB${formattedDate}${String(index + 1).padStart(5, "0")}`;
-      const operatorIndex = faker.number.int({
-        min: 0,
-        max: operatorCount - 1,
-      });
-      const locationIndex = faker.number.int({
-        min: 0,
-        max: locationCount - 1,
-      });
-
-      const isAccident = faker.number.float({ min: 0, max: 1 }) < 0.07;
-
-      const status = isAccident
-        ? WaybillStatus.ACCIDENT
-        : faker.helpers.arrayElement([
-            WaybillStatus.NORMAL,
-            WaybillStatus.UNLOADED,
-          ]);
-
-      const processedAt = new Date(date);
-      processedAt.setDate(date.getDate() + 1);
-      processedAt.setHours(faker.number.int({ min: 8, max: 17 }));
-      processedAt.setMinutes(faker.number.int({ min: 0, max: 59 }));
-
-      const declaredValue = faker.number.int({ min: 30000, max: 100000 });
-
-      return {
-        number,
-        unloadDate: date,
-        operatorIndex,
-        locationIndex,
-        status,
-        processedAt,
-        isAccident,
-        declaredValue,
-      };
-    }
-    function generateWaybillData(
-      operatorCount: number,
-      locationCount: number
-    ): WaybillEntry[] {
-      const start = new Date("2025-04-01");
-      const end = new Date("2025-07-15");
-      const allWeekdays = getWeekdaysBetween(start, end);
-
-      // 평일 중에서 무작위로 날짜 30개 선택 (전체 기간 중 일부만)
-      const shuffled = faker.helpers.shuffle(allWeekdays);
-      const selectedDates = shuffled.slice(0, 60); // 필요한 날짜 수는 조절 가능
-
-      const result: WaybillEntry[] = [];
-
-      for (const date of selectedDates) {
-        const dateStr = date.toISOString().slice(0, 10); // ex: '2025-05-04'
-        const count = faker.number.int({ min: 600, max: 900 });
-
-        for (let i = 0; i < count; i++) {
-          const number = `WB${dateStr.replace(/-/g, "")}${String(
-            i + 1
-          ).padStart(5, "0")}`;
-          result.push(
-            createWaybillEntry({
-              date,
-              index: i,
-              operatorCount,
-              locationCount,
-              number,
-            })
-          );
-        }
-      }
-
-      return result;
-    }
     const waybillData = generateWaybillData(
       allOperators.length,
       locations.length
@@ -231,23 +221,19 @@ async function seedData() {
         })
       )
     );
-    //--------------------------------
-    // 운송장 생성 (처리 정보 포함)
 
-    // 소포 생성 (물건 정보만)
-    const parcels = await chunkedPromiseAll(
-      waybillData.map((data, index) =>
+    const _parcels = await chunkedPromiseAll(
+      waybillData.map((data, _index) =>
         prisma.parcel.create({
           data: {
-            waybillId: waybills[index].id,
+            waybillId: waybills[_index].id,
             declaredValue: data.declaredValue,
           },
         })
       )
     );
 
-    // 근무 기록 생성
-    const shifts = await chunkedPromiseAll([
+    const _shifts = await chunkedPromiseAll([
       prisma.operatorShift.create({
         data: {
           operatorId: allOperators[0].id,
@@ -274,7 +260,6 @@ async function seedData() {
       }),
     ]);
 
-    // 작업 통계 생성 - 실제 운송장 데이터 기반으로 계산
     const workStatsMap = new Map<
       string,
       {
@@ -288,8 +273,7 @@ async function seedData() {
       }
     >();
 
-    // 운송장 데이터를 기반으로 작업 통계 계산
-    waybillData.forEach((waybill, index) => {
+    waybillData.forEach((waybill, _index) => {
       const operator = allOperators[waybill.operatorIndex];
       const location = locations[waybill.locationIndex];
       const dateKey = `${operator.id}-${
@@ -316,12 +300,10 @@ async function seedData() {
         stats.errorCount += 1;
       }
 
-      // 소포의 declaredValue를 revenue에 추가
       stats.revenue += waybill.declaredValue;
     });
 
-    // Map에서 작업 통계 데이터 생성
-    const works = await chunkedPromiseAll(
+    const _works = await chunkedPromiseAll(
       Array.from(workStatsMap.values()).map((stats) =>
         prisma.operatorWork.create({
           data: stats,
@@ -335,7 +317,6 @@ async function seedData() {
   }
 }
 
-// 스크립트가 직접 실행될 때만 실행
 if (require.main === module) {
   seedData();
 }

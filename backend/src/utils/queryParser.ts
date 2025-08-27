@@ -1,20 +1,8 @@
-/**
- * 쿼리 파라미터 안전 파싱 유틸리티
- *
- * req.query에서 값을 안전하게 추출하고 타입 변환을 처리합니다.
- */
-
-/**
- * 문자열 쿼리 파라미터를 안전하게 추출
- */
 export function parseStringQuery(query: any, key: string): string | undefined {
   const value = query[key];
   return typeof value === "string" ? value : undefined;
 }
 
-/**
- * 숫자 쿼리 파라미터를 안전하게 추출
- */
 export function parseNumberQuery(query: any, key: string): number | undefined {
   const value = query[key];
   if (typeof value === "string") {
@@ -24,9 +12,6 @@ export function parseNumberQuery(query: any, key: string): number | undefined {
   return undefined;
 }
 
-/**
- * 날짜 쿼리 파라미터를 안전하게 추출
- */
 export function parseDateQuery(query: any, key: string): Date | undefined {
   const value = query[key];
   if (typeof value === "string") {
@@ -36,9 +21,6 @@ export function parseDateQuery(query: any, key: string): Date | undefined {
   return undefined;
 }
 
-/**
- * 불린 쿼리 파라미터를 안전하게 추출
- */
 export function parseBooleanQuery(
   query: any,
   key: string
@@ -51,9 +33,6 @@ export function parseBooleanQuery(
   return undefined;
 }
 
-/**
- * Enum 쿼리 파라미터를 안전하게 추출
- */
 export function parseEnumQuery<T extends string>(
   query: any,
   key: string,
@@ -66,9 +45,6 @@ export function parseEnumQuery<T extends string>(
   return undefined;
 }
 
-/**
- * 페이지네이션 파라미터를 안전하게 추출
- */
 export function parsePaginationQuery(query: any): {
   page?: number;
   limit?: number;
@@ -76,7 +52,6 @@ export function parsePaginationQuery(query: any): {
 } {
   const getAll = parseBooleanQuery(query, "getAll");
 
-  // getAll이 true이면 page와 limit은 무시
   if (getAll) {
     return {
       getAll: true,

@@ -4,12 +4,10 @@ import { z } from "zod";
 export const mathTool = tool(
   async ({ numbers, operation }) => {
     try {
-      // Validate input
       if (!numbers || numbers.length === 0) {
         return "Error: Please provide at least one number.";
       }
 
-      // Validate all elements are numbers
       if (!numbers.every((n) => typeof n === "number" && isFinite(n))) {
         return "Error: All elements must be valid finite numbers.";
       }
@@ -74,15 +72,12 @@ export const mathTool = tool(
           return `Error: Unknown operation '${operation}'. Supported operations: add, subtract, multiply, divide, average, min, max, sum, product, count`;
       }
 
-      // Check result validity
       if (!isFinite(result)) {
         return "Error: Calculation resulted in infinity or NaN.";
       }
 
-      // Format result (max 10 decimal places)
       const formattedResult = Number.parseFloat(result.toFixed(10));
 
-      // Create operation description
       const numbersStr = numbers.join(", ");
       const operationDesc = {
         add: `Adding ${numbersStr}`,

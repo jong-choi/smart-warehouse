@@ -182,7 +182,7 @@ export const setupChatbotSocket = (server: HTTPServer) => {
         userId?: string;
         systemContext?: string;
       }) => {
-        const userId = data.userId || socket.id;
+        const _userId = data.userId || socket.id;
 
         try {
           // 스트리밍 응답 시작
@@ -213,7 +213,7 @@ export const setupChatbotSocket = (server: HTTPServer) => {
           // RunnableWithMessageHistory의 stream 사용
           const stream = await chatChain.stream(
             { input: data.message },
-            { configurable: { sessionId: userId } }
+            { configurable: { sessionId: _userId } }
           );
 
           for await (const chunk of stream) {
@@ -268,7 +268,7 @@ export const setupChatbotSocket = (server: HTTPServer) => {
 
     // 대화 기록 초기화
     socket.on("clear_conversation", (data: { userId?: string }) => {
-      const userId = data.userId || socket.id;
+      const _userId = data.userId || socket.id;
 
       // 이 소켓의 메시지 히스토리 초기화
       chatMessageHistoryWithDeletion.clear();
@@ -281,7 +281,7 @@ export const setupChatbotSocket = (server: HTTPServer) => {
 
     // 초기 인사 메시지 요청 처리
     socket.on("request_welcome_message", async (data: { userId?: string }) => {
-      const userId = data.userId || socket.id;
+      const _userId = data.userId || socket.id;
       try {
         await sendWelcomeMessage(socket);
       } catch (error) {

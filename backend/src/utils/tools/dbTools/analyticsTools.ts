@@ -45,7 +45,7 @@ export const dashboardQueryTool = tool(
       }
 
       // 현재 기간 데이터
-      const [waybills, operators, locations, waybillStats, salesStats] =
+      const [waybills, operators, locations, _waybillStats, salesStats] =
         await Promise.all([
           // 운송장 현황
           prisma.waybill.findMany({
@@ -103,7 +103,7 @@ export const dashboardQueryTool = tool(
       // 이전 기간 데이터 (비교용)
       let previousData = null;
       if (compareWithPrevious) {
-        const [prevWaybills, prevWaybillStats, prevSalesStats] =
+        const [prevWaybills, _prevWaybillStats, prevSalesStats] =
           await Promise.all([
             prisma.waybill.findMany({
               where: {

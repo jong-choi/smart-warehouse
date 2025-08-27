@@ -1,13 +1,3 @@
-/**
- * 중앙화된 타입 정의 파일
- *
- * 이 파일은 Prisma 스키마를 기반으로 한 타입 시스템을 제공합니다.
- * 모든 API 요청/응답, 필터, 통계 등의 타입이 여기에 정의되어 있습니다.
- */
-
-// ============================================================================
-// Prisma 모델 타입들 (데이터베이스 엔티티)
-// ============================================================================
 export type {
   Operator,
   OperatorShift,
@@ -16,55 +6,31 @@ export type {
   Waybill,
   Parcel,
 } from "@generated/prisma";
-
-// ============================================================================
-// Zod 검증 스키마에서 추론된 타입들
-// ============================================================================
 export type {
-  // Enum 타입들
   OperatorType,
   WaybillStatus,
-
-  // 기본 필터 타입
   DateRangeFilter,
-
-  // API 요청 타입들
   CreateOperatorRequest,
   CreateLocationRequest,
   CreateWaybillRequest,
   CreateParcelRequest,
   CreateOperatorShiftRequest,
   CreateOperatorWorkRequest,
-
-  // 필터 타입들
   OperatorFilters,
   WaybillFilters,
-
-  // 업데이트 요청 타입들
   UpdateOperatorRequest,
   UpdateLocationRequest,
   UpdateWaybillRequest,
   UpdateParcelRequest,
-
-  // 페이지네이션 타입
   PaginationParams,
 } from "@utils/validation";
 
-// ============================================================================
-// SSE Chatbot 타입들
-// ============================================================================
-export type * from "./sseChatbot";
-
-// ============================================================================
-// API 응답 타입들
-// ============================================================================
 export interface ApiResponse<T = any> {
   success: boolean;
   data?: T;
   error?: string;
   message?: string;
 }
-
 export interface PaginatedResponse<T> {
   data: T[];
   pagination: {
@@ -74,30 +40,24 @@ export interface PaginatedResponse<T> {
     totalPages: number;
   };
 }
-
-// ============================================================================
-// 통계 타입들
-// ============================================================================
 export interface OperatorStats {
   total: number;
   byType: Array<{
     type: "HUMAN" | "MACHINE";
     count: number;
   }>;
-  // 상세 통계 정보 추가
   operators: Array<{
     id: number;
     name: string;
     code: string;
     type: "HUMAN" | "MACHINE";
-    totalProcessedCount: number; // 총 처리한 운송장 수
-    accidentCount: number; // 사고 처리 건수
-    totalRevenue: number; // 총 처리 금액
-    accidentAmount: number; // 사고 금액
-    averageDailyProcessed: number; // 일평균 처리량
+    totalProcessedCount: number;
+    accidentCount: number;
+    totalRevenue: number;
+    accidentAmount: number;
+    averageDailyProcessed: number;
   }>;
 }
-
 export interface WaybillStats {
   total: number;
   byStatus: Array<{
@@ -106,7 +66,6 @@ export interface WaybillStats {
   }>;
   accidentCount: number;
 }
-
 export interface LocationStats {
   total: number;
   locations: Array<{
@@ -115,18 +74,141 @@ export interface LocationStats {
     address: string | null;
     waybillCount: number;
     workCount: number;
-    // 상세 통계 정보 추가
-    pendingUnloadCount: number; // 하차 예정 수량
-    totalProcessedCount: number; // 전체 처리 개수
-    accidentCount: number; // 사고 건수
-    totalRevenue: number; // 처리 금액
-    accidentAmount: number; // 사고 금액
+    pendingUnloadCount: number;
+    totalProcessedCount: number;
+    accidentCount: number;
+    totalRevenue: number;
+    accidentAmount: number;
   }>;
 }
+export interface SalesData {
+  period: string;
+  unloadCount: number;
+  totalShippingValue: number;
+  avgShippingValue: number;
+  normalProcessCount: number;
+  processValue: number;
+  accidentCount: number;
+  accidentValue: number;
+}
+export interface SalesOverviewData {
+  totalRevenue: number;
+  avgShippingValue: number;
+  accidentLossRate: number;
+  monthlyGrowthRate: number;
+  totalProcessedCount: number;
+  totalAccidentCount: number;
+  currentMonthRevenue: number;
+  previousMonthRevenue: number;
+}
+export interface LocationSalesData {
+  locationId: number;
+  locationName: string;
+  revenue: number;
+  processedCount: number;
+  accidentCount: number;
+}
+export interface WaybillCalendarData {
+  date: string;
+  count: number;
+}
+export interface WaybillLocationStats {
+  locationId: number;
+  locationName: string;
+  address: string;
+  count: number;
+  statuses: { [key: string]: number };
+}
+export interface WaybillLocationCalendarData {
+  date: string;
+  count: number;
+  statuses: { [key: string]: number };
+  locations: { name: string; count: number }[];
+}
 
-// ============================================================================
-// Prisma Where 조건 타입들 (타입 안전성을 위한)
-// ============================================================================
+export interface WaybillLocationCalendarInternalData {
+  count: number;
+  statuses: { [key: string]: number };
+  locations: { [key: string]: { name: string; count: number } };
+}
+export interface WaybillQueryResult {
+  data: any[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+export interface OperatorWorkStats {
+  operatorId: number;
+  workCount: number;
+  totalProcessedCount: number;
+  accidentCount: number;
+  totalRevenue: number;
+  accidentAmount: number;
+  averageDailyProcessed: number;
+}
+export interface OperatorSorting {
+  field: string;
+  direction: "asc" | "desc";
+}
+export interface ControllerResponse<T = any> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  error?: string;
+}
+export interface PaginatedControllerResponse<T>
+  extends ControllerResponse<T[]> {
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+export interface SalesMeta {
+  year: number;
+  totalMonths?: number;
+  month?: number;
+  totalDays?: number;
+}
+export interface SalesControllerResponse extends ControllerResponse {
+  meta?: SalesMeta;
+}
+export interface LocationControllerResponse extends ControllerResponse {
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  count?: number;
+}
+export interface OperatorControllerResponse extends ControllerResponse {
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  waybillsPagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  count?: number;
+}
+export interface WaybillControllerResponse extends ControllerResponse {
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
 export interface OperatorWhereInput {
   type?: "HUMAN" | "MACHINE";
   search?: string;
@@ -139,7 +221,6 @@ export interface OperatorWhereInput {
     lte?: Date;
   };
 }
-
 export interface WaybillWhereInput {
   status?: "PENDING_UNLOAD" | "UNLOADED" | "NORMAL" | "ACCIDENT";
   operatorId?: number;
@@ -158,7 +239,6 @@ export interface WaybillWhereInput {
   };
   isAccident?: boolean;
 }
-
 export interface OperatorShiftWhereInput {
   operatorId: number;
   date?: {
@@ -166,7 +246,6 @@ export interface OperatorShiftWhereInput {
     lte?: Date;
   };
 }
-
 export interface OperatorWorkWhereInput {
   operatorId?: number;
   locationId?: number;
@@ -174,4 +253,135 @@ export interface OperatorWorkWhereInput {
     gte?: Date;
     lte?: Date;
   };
+}
+export interface RouteParams {
+  id?: string;
+  code?: string;
+  number?: string;
+  locationId?: string;
+  operatorId?: string;
+}
+export interface RouteQuery {
+  page?: string;
+  limit?: string;
+  getAll?: string;
+  search?: string;
+  startDate?: string;
+  endDate?: string;
+  date?: string;
+  year?: string;
+  month?: string;
+  type?: string;
+  sortField?: string;
+  sortDirection?: "asc" | "desc";
+  status?: string;
+}
+export interface RouteRequest {
+  query: RouteQuery;
+  params: RouteParams;
+}
+export interface RouteResponse<T = any> {
+  success: boolean;
+  data?: T;
+  message?: string;
+  error?: string;
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+  count?: number;
+  meta?: {
+    year?: number;
+    totalMonths?: number;
+    month?: number;
+    totalDays?: number;
+  };
+}
+
+export interface OperatorParams {
+  id?: string;
+  operatorId?: string;
+}
+
+export interface OperatorQueryParams {
+  page?: string;
+  limit?: string;
+  search?: string;
+  type?: string;
+  startDate?: string;
+  endDate?: string;
+  sortField?: string;
+  sortDirection?: "asc" | "desc";
+  status?: string;
+}
+
+export interface OperatorResponse {
+  success: boolean;
+  data?: any;
+  message?: string;
+  error?: string;
+  pagination?: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface OperatorFilterOptions {
+  filters: OperatorWhereInput;
+  pagination?: {
+    page?: number;
+    limit?: number;
+  };
+  sorting?: OperatorSorting;
+}
+
+export interface SalesQueryParams {
+  year?: string;
+  month?: string;
+}
+
+export interface LocationQueryParams {
+  page?: string;
+  limit?: string;
+  search?: string;
+  startDate?: string;
+  endDate?: string;
+  getAll?: string;
+}
+
+export interface LocationParams {
+  id?: string;
+  locationId?: string;
+}
+
+export interface WaybillQueryParams {
+  page?: string;
+  limit?: string;
+  search?: string;
+  status?: string;
+  operatorId?: string;
+  locationId?: string;
+  startDate?: string;
+  endDate?: string;
+  date?: string;
+}
+
+export interface WaybillParams {
+  id?: string;
+  number?: string;
+  locationId?: string;
+}
+
+export interface LocationWorkStats {
+  locationId: number;
+  locationName: string;
+  workCount: number;
+  totalProcessedCount: number;
+  accidentCount: number;
+  totalRevenue: number;
+  accidentAmount: number;
 }

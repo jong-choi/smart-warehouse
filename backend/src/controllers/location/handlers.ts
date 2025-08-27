@@ -1,25 +1,28 @@
-import { Request, Response } from "express";
-import { LocationService } from "@services/locationService";
+import { Response } from "express";
+import { LocationService } from "@services/location";
+import { LocationValidators } from "./validators";
+import { LocationRequest, LocationResponse } from "./types";
 import { parsePaginationQuery } from "@utils/queryParser";
 
-const locationService = new LocationService();
+export class LocationHandlers {
+  private locationService: LocationService;
 
-export class LocationController {
-  /**
-   * 모든 배송지 목록을 조회합니다. (페이지네이션 지원)
-   */
-  async getAllLocations(req: Request, res: Response) {
+  constructor() {
+    this.locationService = new LocationService();
+  }
+
+  async getAllLocations(req: LocationRequest, res: Response): Promise<void> {
     try {
-      // 페이지네이션 파라미터 파싱
       const pagination = parsePaginationQuery(req.query);
+      const result = await this.locationService.getAllLocations(pagination);
 
-      const result = await locationService.getAllLocations(pagination);
-
-      res.json({
+      const response: LocationResponse = {
         success: true,
         data: result.data,
         pagination: result.pagination,
-      });
+      };
+
+      res.json(response);
     } catch (error) {
       console.error("Error fetching locations:", error);
       res.status(500).json({
@@ -29,27 +32,26 @@ export class LocationController {
     }
   }
 
-  /**
-   * 특정 배송지의 상세 정보를 조회합니다.
-   */
-  async getLocationById(req: Request, res: Response) {
+  async getLocationById(req: LocationRequest, res: Response): Promise<void> {
     try {
-      const id = parseInt(req.params.id);
+      const id = LocationValidators.parseId(req.params);
 
-      if (isNaN(id)) {
-        return res.status(400).json({
+      if (!LocationValidators.validateId(id)) {
+        res.status(400).json({
           success: false,
           message: "유효하지 않은 배송지 ID입니다.",
         });
+        return;
       }
 
-      const location = await locationService.getLocationById(id);
+      const location = await this.locationService.getLocationById(id);
 
       if (!location) {
-        return res.status(404).json({
+        res.status(404).json({
           success: false,
           message: "해당 배송지를 찾을 수 없습니다.",
         });
+        return;
       }
 
       res.json({
@@ -65,22 +67,15 @@ export class LocationController {
     }
   }
 
-  /**
-   * 배송지별 통계를 조회합니다.
-   */
-  async getLocationStats(req: Request, res: Response) {
+  async getLocationStats(req: LocationRequest, res: Response): Promise<void> {
     try {
-      let startDate: Date | undefined;
-      let endDate: Date | undefined;
-
-      if (req.query.startDate) {
-        startDate = new Date(req.query.startDate as string);
-      }
-      if (req.query.endDate) {
-        endDate = new Date(req.query.endDate as string);
-      }
-
-      const stats = await locationService.getLocationStats(startDate, endDate);
+      const { startDate, endDate } = LocationValidators.parseDateRange(
+        req.query
+      );
+      const stats = await this.locationService.getLocationStats(
+        startDate,
+        endDate
+      );
 
       res.json({
         success: true,
@@ -95,23 +90,23 @@ export class LocationController {
     }
   }
 
-  /**
-   * 특정 배송지의 운송장 목록을 조회합니다.
-   */
-  async getLocationWaybills(req: Request, res: Response) {
+  async getLocationWaybills(
+    req: LocationRequest,
+    res: Response
+  ): Promise<void> {
     try {
-      const locationId = parseInt(req.params.locationId);
+      const locationId = LocationValidators.parseId(req.params);
 
-      if (isNaN(locationId)) {
-        return res.status(400).json({
+      if (!LocationValidators.validateId(locationId)) {
+        res.status(400).json({
           success: false,
           message: "유효하지 않은 배송지 ID입니다.",
         });
+        return;
       }
 
-      const limit = req.query.limit ? parseInt(req.query.limit as string) : 50;
-
-      const waybills = await locationService.getLocationWaybills(
+      const limit = LocationValidators.parseLimit(req.query);
+      const waybills = await this.locationService.getLocationWaybills(
         locationId,
         limit
       );
@@ -130,31 +125,22 @@ export class LocationController {
     }
   }
 
-  /**
-   * 특정 배송지의 작업 통계를 조회합니다.
-   */
-  async getLocationWorks(req: Request, res: Response) {
+  async getLocationWorks(req: LocationRequest, res: Response): Promise<void> {
     try {
-      const locationId = parseInt(req.params.locationId);
+      const locationId = LocationValidators.parseId(req.params);
 
-      if (isNaN(locationId)) {
-        return res.status(400).json({
+      if (!LocationValidators.validateId(locationId)) {
+        res.status(400).json({
           success: false,
           message: "유효하지 않은 배송지 ID입니다.",
         });
+        return;
       }
 
-      let startDate: Date | undefined;
-      let endDate: Date | undefined;
-
-      if (req.query.startDate) {
-        startDate = new Date(req.query.startDate as string);
-      }
-      if (req.query.endDate) {
-        endDate = new Date(req.query.endDate as string);
-      }
-
-      const works = await locationService.getLocationWorks(
+      const { startDate, endDate } = LocationValidators.parseDateRange(
+        req.query
+      );
+      const works = await this.locationService.getLocationWorks(
         locationId,
         startDate,
         endDate

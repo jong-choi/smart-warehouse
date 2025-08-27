@@ -7,7 +7,6 @@ type WritableLike = ExpressResponse & {
   destroyed?: boolean;
 };
 
-// SSE 종료/중단 시에도 안전하게 write 하기 위한 헬퍼
 const isWritable = (res?: ExpressResponse): res is WritableLike => {
   if (!res) return false;
   const r = res as Partial<WritableLike>;
