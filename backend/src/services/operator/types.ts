@@ -1,1 +1,1 @@
-export type { OperatorWorkStats, OperatorSorting } from "@typings/index";
+export type { OperatorWorkStats, OperatorSorting } from "@/typings";

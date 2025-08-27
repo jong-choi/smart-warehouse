@@ -6,4 +6,4 @@ export type {
   SalesControllerResponse as SalesResponse,
   SalesMeta,
   SalesQueryParams,
-} from "@typings/index";
+} from "@/typings";

@@ -6,7 +6,6 @@ import {
   getNormalParcelCountFromStats,
   getAccidentParcelCountFromStats,
 } from "@/utils/operatorUtils";
-import { WorkersTable, PageHeader } from "./components";
 import { Stat, PageLayout } from "@components/ui";
 import { Search } from "lucide-react";
 import { Input } from "@components/ui/input";
@@ -16,6 +15,8 @@ import React from "react";
 import { LoadingSkeleton } from "@components/dashboard/home/waybills";
 import type { OperatorsStats } from "@/types/operator";
 import { useWorkersListMessage } from "@components/dashboard/workers/list/hooks";
+import { PageHeader } from "@components/dashboard/workers/components/PageHeader";
+import { WorkersTable } from "@components/dashboard/workers/components/WorkersTable";
 
 function WorkersListContent() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -166,7 +167,6 @@ function WorkersListContent() {
   return (
     <PageLayout>
       <PageHeader total={sortedOperators.length} isLoading={false} />
-
       <Stat.Container>
         <div className="flex items-center justify-between mb-4">
           <Stat.Head className="mb-0">작업자 목록</Stat.Head>

@@ -1,4 +1,4 @@
-import { WaybillFilters } from "@typings/index";
+import { WaybillFilters } from "@/typings";
 import { WaybillQueryParams, WaybillParams } from "./types";
 
 export class WaybillValidators {

@@ -1,5 +1,5 @@
 import { PrismaClient } from "@generated/prisma";
-import { WaybillFilters, WaybillWhereInput } from "@typings/index";
+import { WaybillFilters, WaybillWhereInput } from "@/typings";
 
 const prisma = new PrismaClient();
 

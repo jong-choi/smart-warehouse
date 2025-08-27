@@ -1,5 +1,5 @@
 import { PrismaClient } from "@generated/prisma";
-import { OperatorFilters, OperatorWhereInput } from "@typings/index";
+import { OperatorFilters, OperatorWhereInput } from "@/typings";
 import { OperatorSorting } from "./types";
 
 const prisma = new PrismaClient();

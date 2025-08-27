@@ -2,7 +2,7 @@ import { Response } from "express";
 import { OperatorService } from "@services/operator";
 import { OperatorValidators } from "./validators";
 import { OperatorRequest } from "./types";
-import { OperatorResponse, OperatorFilterOptions } from "@typings/index";
+import { OperatorResponse, OperatorFilterOptions } from "@/typings";
 import { parsePaginationQuery } from "@utils/queryParser";
 
 export class OperatorHandlers {
@@ -14,7 +14,8 @@ export class OperatorHandlers {
 
   async getAllOperators(req: OperatorRequest, res: Response): Promise<void> {
     try {
-      const filterOptions: OperatorFilterOptions = OperatorValidators.buildFilterOptions(req.query);
+      const filterOptions: OperatorFilterOptions =
+        OperatorValidators.buildFilterOptions(req.query);
       const result = await this.operatorService.getAllOperators(
         filterOptions.filters,
         filterOptions.pagination,

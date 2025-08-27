@@ -1,5 +1,5 @@
 import { PrismaClient } from "@generated/prisma";
-import { OperatorStats } from "@typings/index";
+import { OperatorStats } from "@/typings";
 import { OperatorRepository } from "./repository";
 import { OperatorWorkStats } from "./types";
 
@@ -34,7 +34,10 @@ export class OperatorStatsService {
 
     const operatorStats = await Promise.all(
       operators.map(async (operator) => {
-        const workStats = await this.getOperatorWorkStats(operator.id, dateFilter);
+        const workStats = await this.getOperatorWorkStats(
+          operator.id,
+          dateFilter
+        );
         return {
           id: operator.id,
           name: operator.name,

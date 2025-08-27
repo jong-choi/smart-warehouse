@@ -1,4 +1,4 @@
-import { LocationStats } from "@typings/index";
+import { LocationStats } from "@/typings";
 import { LocationRepository } from "./repository";
 
 export class LocationStatsService {

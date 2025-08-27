@@ -1,1 +1,1 @@
-export type { LocationWorkStats } from "@typings/index";
+export type { LocationWorkStats } from "@/typings";

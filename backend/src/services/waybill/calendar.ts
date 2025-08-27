@@ -1,5 +1,9 @@
 import { PrismaClient } from "@generated/prisma";
-import { WaybillFilters, WaybillLocationCalendarData, WaybillLocationCalendarInternalData } from "@typings/index";
+import {
+  WaybillFilters,
+  WaybillLocationCalendarData,
+  WaybillLocationCalendarInternalData,
+} from "@/typings";
 
 const prisma = new PrismaClient();
 
@@ -54,7 +58,9 @@ export class WaybillCalendarService {
       dateData.locations[locationName].count++;
     });
 
-    const result: WaybillLocationCalendarData[] = Array.from(dateMap.entries()).map(([date, data]) => ({
+    const result: WaybillLocationCalendarData[] = Array.from(
+      dateMap.entries()
+    ).map(([date, data]) => ({
       date,
       count: data.count,
       statuses: data.statuses,

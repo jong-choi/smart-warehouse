@@ -1,6 +1,6 @@
-import { OperatorFilters, OperatorType } from "@typings/index";
+import { OperatorFilters, OperatorType } from "@/typings";
 import { OperatorQueryParams, OperatorParams } from "./types";
-import { OperatorFilterOptions } from "@typings/index";
+import { OperatorFilterOptions } from "@/typings";
 
 export class OperatorValidators {
   static parseId(params: OperatorParams): number {

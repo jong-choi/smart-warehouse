@@ -57,7 +57,7 @@ export function TableSkeleton({ rows = 5 }: TableSkeletonProps) {
           </TableBody>
         </Table>
 
-        {/* 페이지네이션 스켈레톤 */}
+        {/* 페이징 네비게이션 스켈레톤 */}
         <div className="flex items-center justify-between mt-6">
           <div className="h-4 bg-gray-200 rounded animate-pulse w-32"></div>
           <div className="flex gap-2">

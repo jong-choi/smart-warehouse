@@ -7,7 +7,7 @@ import type {
   OperatorControllerResponse,
   SalesControllerResponse,
   WaybillControllerResponse,
-} from "@typings/index";
+} from "@/typings";
 
 // Route-scoped Params/Query derived from generic SSOT types
 export type OperatorRouteParams = Pick<
@@ -97,4 +97,3 @@ export type WaybillHandler = WaybillRouteHandler;
 export type SalesRequest = SalesRouteRequest;
 export type SalesResponse = SalesControllerResponse & ControllerResponse;
 export type SalesHandler = SalesRouteHandler;
-

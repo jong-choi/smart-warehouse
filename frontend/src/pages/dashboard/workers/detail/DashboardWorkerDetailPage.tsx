@@ -9,7 +9,6 @@ import {
   SelectValue,
 } from "@components/ui/select";
 import { useOperatorDetailSuspense } from "@/hooks/useOperator";
-import { DetailHeader, OperatorInfoCards } from "./components";
 import { useChatUiStore } from "@stores/chatUiStore";
 import { Stat } from "@components/ui";
 import { Input } from "@components/ui/input";
@@ -19,6 +18,8 @@ import { StatusBadge } from "@ui/status-badge";
 import { formatCurrency } from "@utils/formatString";
 import { Link } from "react-router-dom";
 import { LoadingSkeleton } from "@components/dashboard/home/waybills";
+import { OperatorInfoCards } from "@components/dashboard/workers/detail/components/OperatorInfoCards";
+import { DetailHeader } from "@components/dashboard/workers/detail/components/DetailHeader";
 
 function WorkerDetailContent() {
   const { code } = useParams<{ code: string }>();

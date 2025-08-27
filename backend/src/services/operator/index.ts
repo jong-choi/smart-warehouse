@@ -1,4 +1,4 @@
-import { OperatorFilters } from "@typings/index";
+import { OperatorFilters } from "@/typings";
 import { OperatorRepository } from "./repository";
 import { OperatorStatsService } from "./stats";
 import { OperatorSorting } from "./types";

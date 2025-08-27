@@ -1,4 +1,4 @@
-import { WaybillFilters, WaybillStats } from "@typings/index";
+import { WaybillFilters, WaybillStats } from "@/typings";
 import { WaybillRepository } from "./repository";
 import { WaybillStatsService } from "./stats";
 import { WaybillCalendarService } from "./calendar";

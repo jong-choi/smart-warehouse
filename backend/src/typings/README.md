@@ -15,7 +15,7 @@
 - 런타임 타입 안전성 보장
 - 한국어 에러 메시지 제공
 
-### 3. 중앙화된 타입 정의 (`@typings/index`)
+### 3. 중앙화된 타입 정의 (`@/typings`)
 
 - 모든 타입을 한 곳에서 관리
 - Prisma와 Zod 타입을 통합
@@ -27,11 +27,7 @@
 
 ```typescript
 import { PrismaClient } from "@generated/prisma";
-import {
-  OperatorFilters,
-  OperatorWhereInput,
-  OperatorStats,
-} from "@typings/index";
+import { OperatorFilters, OperatorWhereInput, OperatorStats } from "@/typings";
 
 export class OperatorService {
   async getAllOperators(filters: OperatorFilters = {}) {
@@ -62,7 +58,7 @@ export class OperatorService {
 
 ```typescript
 import { Request, Response } from "express";
-import { OperatorFilters } from "@typings/index";
+import { OperatorFilters } from "@/typings";
 
 export class OperatorController {
   async getAllOperators(req: Request, res: Response) {
@@ -153,5 +149,5 @@ const operator = await prisma.operator.create({
 1. Prisma 스키마에 모델 추가
 2. `npx prisma generate` 실행
 3. `@utils/validation.ts`에 Zod 스키마 추가
-4. `@typings/index.ts`에서 타입 재export
+4. `@/typings.ts`에서 타입 재export
 5. 서비스와 컨트롤러에서 타입 사용

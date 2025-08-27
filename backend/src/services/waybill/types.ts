@@ -3,4 +3,4 @@ export type {
   WaybillLocationStats,
   WaybillLocationCalendarData,
   WaybillQueryResult,
-} from "@typings/index";
+} from "@/typings";

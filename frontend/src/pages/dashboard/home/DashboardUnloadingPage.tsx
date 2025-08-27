@@ -5,7 +5,7 @@ import {
 } from "@components/dashboard/home/waybills/hooks";
 import { UnloadingTable } from "@components/dashboard/home/waybills/table/UnloadingTable";
 import { UnloadingInfo } from "@components/dashboard/home/waybills/UnloadingInfo";
-import { TableSkeleton } from "@pages/dashboard/workers/components";
+import { TableSkeleton } from "@components/dashboard/workers/components/TableSkeleton";
 import { PageLayout } from "@ui/page-layout";
 
 export default function DashboardUnloadingPage() {
