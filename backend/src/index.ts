@@ -1,16 +1,15 @@
+import "dotenv/config";
 import express from "express";
 import cors from "cors";
 import morgan from "morgan";
 import swaggerUi from "swagger-ui-express";
 import { createServer } from "http";
-import "module-alias/register";
 import {
   waybillRoutes,
   operatorRoutes,
   locationRoutes,
   salesRoutes,
 } from "@src/routes";
-import { setupChatbotSocket } from "@src/routes/chatbotRoutes";
 import { specs } from "@src/config/swagger";
 import sseChatbotRoutes from "@src/routes/sseChatbotRoutes";
 
@@ -96,9 +95,6 @@ app.use(
     });
   }
 );
-
-// 웹소켓 서버 설정
-setupChatbotSocket(server);
 
 server.listen(Number(PORT), "0.0.0.0", () => {
   // Server started successfully

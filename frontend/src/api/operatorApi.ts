@@ -1,8 +1,6 @@
 import type { Operator, OperatorDetail, OperatorParcel } from "@/types";
 
-const API_BASE_URL = `${
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3050"
-}/api`;
+const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL ?? ""}/api`;
 
 // 작업자 목록 조회
 export async function fetchOperators(

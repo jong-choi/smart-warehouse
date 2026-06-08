@@ -21,23 +21,13 @@ vi.mock("@/stores/unloadingParcelsStore", () => {
       declaredValue: 2000,
     },
   ];
+  const state = { parcels: mockParcels };
 
   return {
     useUnloadingParcelsStore: Object.assign(
-      (selector?: (state: { parcels: UnloadingParcel[] }) => boolean) => {
-        if (typeof selector === "function") {
-          // selector 함수가 있으면 hasData 확인용
-          return mockParcels.length > 0;
-        }
-        // selector가 없으면 전체 상태 반환
-        return {
-          parcels: mockParcels,
-        };
-      },
+      (selector: (value: typeof state) => unknown) => selector(state),
       {
-        getState: () => ({
-          parcels: mockParcels,
-        }),
+        getState: () => state,
       }
     ),
   };

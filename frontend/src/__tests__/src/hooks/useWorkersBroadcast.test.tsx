@@ -54,18 +54,22 @@ vi.mock("@/stores/workersStore", () => {
     },
   ];
 
+  const updateWorker = (
+    workerId: string,
+    updates: Record<string, unknown>
+  ) => {
+    const worker = workers.find((candidate) => candidate.id === workerId);
+    if (worker) {
+      Object.assign(worker, updates);
+    }
+  };
+  const state = { workers, updateWorker };
+
   return {
     useWorkersStore: Object.assign(
-      () => ({
-        updateWorker: (workerId: string, updates: Record<string, unknown>) => {
-          const worker = workers.find((w) => w.id === workerId);
-          if (worker) {
-            Object.assign(worker, updates);
-          }
-        },
-      }),
+      (selector: (value: typeof state) => unknown) => selector(state),
       {
-        getState: () => ({ workers }),
+        getState: () => state,
       }
     ),
   };

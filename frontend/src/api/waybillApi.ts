@@ -6,8 +6,7 @@ import type {
 } from "@/types";
 import type { UnloadingParcel } from "@components/dashboard/home/waybills/types";
 
-const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3050";
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL ?? "";
 
 // API 응답 타입
 interface ApiResponse<T> {

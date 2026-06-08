@@ -1,14 +1,35 @@
 import { ChatOpenAI } from "@langchain/openai";
-import { MODEL_NAME } from "./constants";
+import { FALLBACK_MODEL_NAME, MODEL_NAME } from "./constants";
 
-export const createLLMModel = () => {
+const readRequiredEnv = (name: string): string => {
+  const value = process.env[name];
+  if (!value) {
+    throw new Error(`${name} environment variable is required`);
+  }
+  return value;
+};
+
+export const createPrimaryLLMModel = () => {
   return new ChatOpenAI({
     model: MODEL_NAME,
-    apiKey: process.env.OPENAI_API_KEY,
+    apiKey: readRequiredEnv("OLLAMA_API_KEY"),
     streaming: true,
-    useResponsesApi: true,
-    reasoning: { summary: "auto" },
     streamUsage: true,
+    configuration: {
+      baseURL: readRequiredEnv("OLLAMA_BASE_URL"),
+    },
+  });
+};
+
+export const createFallbackLLMModel = () => {
+  return new ChatOpenAI({
+    model: FALLBACK_MODEL_NAME,
+    apiKey: readRequiredEnv("OPENROUTER_API_KEY"),
+    streaming: true,
+    streamUsage: true,
+    configuration: {
+      baseURL: readRequiredEnv("OPENROUTER_BASE_URL"),
+    },
   });
 };
 

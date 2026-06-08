@@ -1,3 +1,4 @@
+import "dotenv/config";
 import { PrismaClient } from "@generated/prisma";
 
 const prisma = new PrismaClient();
@@ -390,7 +391,7 @@ async function seedOperatorsStats() {
   console.log("[완료] operators_stats 테이블 집계 및 저장");
 }
 
-async function main() {
+export async function seedStats() {
   await seedWaybillStats();
   await seedSalesStats();
   await seedWaybillYearlyStats();
@@ -398,10 +399,15 @@ async function main() {
   await seedSalesYearlyStats();
   await seedSalesMonthlyStats();
   await seedOperatorsStats();
-  await prisma.$disconnect();
 }
 
-main().catch((e) => {
-  console.error(e);
-  process.exit(1);
-});
+if (require.main === module) {
+  seedStats()
+    .catch((error) => {
+      console.error(error);
+      process.exitCode = 1;
+    })
+    .finally(async () => {
+      await prisma.$disconnect();
+    });
+}

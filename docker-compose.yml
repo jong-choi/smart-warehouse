@@ -1,0 +1,67 @@
+services:
+  warehouse-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: warehouse-backend
+    restart: unless-stopped
+    env_file:
+      - .env
+    environment:
+      PORT: 3050
+      TZ: Asia/Seoul
+    ports:
+      - "${BACKEND_PORT:-3188}:3050"
+    volumes:
+      - ./backend/data:/app/data
+      - ./backend/logs:/app/logs
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:3050/health"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
+    networks:
+      - npm-network
+
+  warehouse-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      args:
+        VITE_API_BASE_URL: "${VITE_API_BASE_URL:-}"
+    container_name: warehouse-frontend
+    restart: unless-stopped
+    depends_on:
+      warehouse-backend:
+        condition: service_healthy
+    ports:
+      - "${FRONTEND_PORT:-3187}:80"
+    networks:
+      - npm-network
+
+  backend-tools:
+    image: node:20-alpine
+    profiles: ["tools"]
+    working_dir: /app
+    env_file:
+      - .env
+    environment:
+      TZ: Asia/Seoul
+    entrypoint:
+      - /bin/sh
+      - -c
+      - 'npm ci && exec "$@"'
+      - --
+    command: ["npm", "run", "db:generate"]
+    volumes:
+      - ./backend:/app
+      - warehouse-backend-tools-node-modules:/app/node_modules
+      - ./backend/data:/app/data
+
+volumes:
+  warehouse-backend-tools-node-modules:
+
+networks:
+  npm-network:
+    external: true

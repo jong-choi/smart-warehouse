@@ -29,28 +29,3 @@ export interface ChatbotState {
   useContext: boolean;
   isMessagePending: boolean;
 }
-
-export interface SocketChunkData {
-  chunk: string;
-  timestamp: string;
-  type: string;
-}
-
-export interface SocketErrorData {
-  error: string;
-  timestamp: string;
-  type: string;
-}
-
-export interface ChatMessage {
-  message: string;
-  userId: string;
-}
-
-export interface ClearConversationRequest {
-  userId: string;
-}
-
-export interface WelcomeMessageRequest {
-  userId: string;
-}

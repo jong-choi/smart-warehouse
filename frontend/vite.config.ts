@@ -11,7 +11,7 @@ export default defineConfig({
     tailwindcss(),
     tsconfigPaths(),
     visualizer({
-      open: true, // 빌드 후 자동으로 브라우저 열기
+      open: process.env.ANALYZE === "true",
       filename: "dist/stats.html",
       gzipSize: true,
       brotliSize: true,

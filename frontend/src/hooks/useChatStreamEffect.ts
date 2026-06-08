@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import { useChatMessagesStore } from "@/stores/chatMessagesStore";
 import { useChatConnectionStore } from "@/stores/chatConnectionStore";
 
@@ -15,25 +15,23 @@ export function useChatStreamEffect(options: Options = {}) {
     setIsConnected,
     setIsLoading,
     setConnectionFailed,
-    sessionId,
     setSessionId,
     reconnectTrigger,
   } = useChatConnectionStore([
     "setIsConnected",
     "setIsLoading",
     "setConnectionFailed",
-    "sessionId",
     "setSessionId",
     "reconnectTrigger",
   ]);
 
-  const [aborted, setAborted] = useState(false);
-
   const sourceRef = useRef<EventSource | null>(null);
+  const sessionIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    setAborted(false); // useEffect 시작시 aborted 초기화
-    if (aborted) return;
+    let cancelled = false;
+    sessionIdRef.current = null;
+
     const connect = async () => {
       try {
         if (sourceRef.current) {
@@ -43,8 +41,9 @@ export function useChatStreamEffect(options: Options = {}) {
 
         setConnectionFailed(false);
         setIsConnected(false);
+        setSessionId(null);
 
-        let sid = sessionId;
+        let sid = sessionIdRef.current;
         if (!sid) {
           const r = await fetch(`${apiBase}/api/chat/session`, {
             method: "POST",
@@ -52,9 +51,10 @@ export function useChatStreamEffect(options: Options = {}) {
           if (!r.ok) throw new Error("failed to create session");
           const j = await r.json();
           sid = j.sessionId as string;
+          sessionIdRef.current = sid;
           setSessionId(sid);
         }
-        if (aborted) return;
+        if (cancelled) return;
 
         const src = new EventSource(
           `${apiBase}/api/chat/stream?sessionId=${sid}`
@@ -189,8 +189,11 @@ export function useChatStreamEffect(options: Options = {}) {
           setConnectionFailed(true);
           setIsConnected(false);
           setSessionId(null);
+          sessionIdRef.current = null;
         });
       } catch {
+        sessionIdRef.current = null;
+        setSessionId(null);
         setConnectionFailed(true);
         setIsConnected(false);
       }
@@ -198,13 +201,13 @@ export function useChatStreamEffect(options: Options = {}) {
 
     connect();
     return () => {
-      setAborted(true);
+      cancelled = true;
       sourceRef.current?.close();
+      sourceRef.current = null;
     };
   }, [
     apiBase,
     clearMessages,
-    sessionId,
     setConnectionFailed,
     setIsConnected,
     setIsLoading,
@@ -212,6 +215,5 @@ export function useChatStreamEffect(options: Options = {}) {
     addMessage,
     updateLastMessage,
     reconnectTrigger,
-    aborted,
   ]);
 }

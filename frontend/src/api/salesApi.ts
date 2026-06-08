@@ -1,8 +1,6 @@
 import type { MonthlySalesResponse, DailySalesResponse } from "@/types/sales";
 
-const API_BASE_URL = `${
-  import.meta.env.VITE_API_BASE_URL || "http://localhost:3050"
-}/api`;
+const API_BASE_URL = `${import.meta.env.VITE_API_BASE_URL ?? ""}/api`;
 
 /**
  * 월별 매출 통계를 조회합니다.
